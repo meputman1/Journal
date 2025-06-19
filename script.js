@@ -4,15 +4,17 @@
 // Global variables
 let journalEntries = [];
 const STORAGE_KEY = 'journalEntries';
+let selectedMood = '';
 
 // DOM elements
 const journalForm = document.getElementById('journalForm');
 const entryText = document.getElementById('entryText');
-const moodSelect = document.getElementById('moodSelect');
+const selectedMoodInput = document.getElementById('selectedMood');
 const entriesContainer = document.getElementById('entriesContainer');
 const noEntries = document.getElementById('noEntries');
 const searchInput = document.getElementById('searchInput');
-const moodFilter = document.getElementById('moodFilter');
+const moodButtons = document.querySelectorAll('.mood-btn');
+const filterButtons = document.querySelectorAll('.filter-btn');
 
 // Initialize the app when the page loads
 document.addEventListener('DOMContentLoaded', function() {
@@ -28,9 +30,55 @@ function setupEventListeners() {
     // Form submission for new entries
     journalForm.addEventListener('submit', handleFormSubmit);
     
-    // Search and filter functionality
+    // Mood button selection
+    moodButtons.forEach(button => {
+        button.addEventListener('click', handleMoodSelection);
+    });
+    
+    // Filter button selection
+    filterButtons.forEach(button => {
+        button.addEventListener('click', handleFilterSelection);
+    });
+    
+    // Search functionality
     searchInput.addEventListener('input', filterEntries);
-    moodFilter.addEventListener('change', filterEntries);
+}
+
+/**
+ * Handles mood button selection in the form
+ * @param {Event} event - The click event
+ */
+function handleMoodSelection(event) {
+    const clickedButton = event.target;
+    const mood = clickedButton.dataset.mood;
+    
+    // Remove selected class from all mood buttons
+    moodButtons.forEach(btn => btn.classList.remove('selected'));
+    
+    // Add selected class to clicked button
+    clickedButton.classList.add('selected');
+    
+    // Update the hidden input and global variable
+    selectedMood = mood;
+    selectedMoodInput.value = mood;
+}
+
+/**
+ * Handles filter button selection
+ * @param {Event} event - The click event
+ */
+function handleFilterSelection(event) {
+    const clickedButton = event.target;
+    const mood = clickedButton.dataset.mood;
+    
+    // Remove active class from all filter buttons
+    filterButtons.forEach(btn => btn.classList.remove('active'));
+    
+    // Add active class to clicked button
+    clickedButton.classList.add('active');
+    
+    // Filter entries
+    filterEntries();
 }
 
 /**
@@ -42,7 +90,7 @@ function handleFormSubmit(event) {
     
     // Get form data
     const text = entryText.value.trim();
-    const mood = moodSelect.value;
+    const mood = selectedMood;
     
     // Validate that text is not empty
     if (!text) {
@@ -69,6 +117,11 @@ function handleFormSubmit(event) {
     
     // Reset form
     journalForm.reset();
+    
+    // Reset mood selection
+    moodButtons.forEach(btn => btn.classList.remove('selected'));
+    selectedMood = '';
+    selectedMoodInput.value = '';
 }
 
 /**
@@ -181,7 +234,8 @@ function getMoodInfo(mood) {
  */
 function filterEntries() {
     const searchTerm = searchInput.value.toLowerCase().trim();
-    const selectedMood = moodFilter.value;
+    const activeFilterButton = document.querySelector('.filter-btn.active');
+    const selectedMood = activeFilterButton ? activeFilterButton.dataset.mood : '';
     
     let filteredEntries = journalEntries;
     
