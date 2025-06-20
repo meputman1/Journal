@@ -491,7 +491,161 @@ main {
 
 .filter-btn.active {
     border-color: #667eea;
+<<<<<<< Updated upstream
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+=======
+    font-weight: bold;
+}
+
+/* Entries Section */
+.entries-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 10px; /* For scrollbar */
+}
+
+.entry-card {
+<<<<<<< Updated upstream
+    background: #f7f9fc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.3s;
+}
+
+.entry-card:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+=======
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border-left: 5px solid #ccc; /* Default border color */
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    animation: slideIn 0.5s ease-out forwards;
+}
+
+.entry-card:hover {
+    box-shadow: 0 7px 14px rgba(0, 0, 0, 0.07);
+    transform: translateY(-3px);
+>>>>>>> Stashed changes
+}
+
+/* Mood-based border colors */
+.entry-card[data-mood="happy"] { border-left-color: #f6e05e; } /* yellow */
+.entry-card[data-mood="sad"] { border-left-color: #63b3ed; } /* blue */
+.entry-card[data-mood="excited"] { border-left-color: #f687b3; } /* pink */
+.entry-card[data-mood="calm"] { border-left-color: #68d391; } /* green */
+.entry-card[data-mood="anxious"] { border-left-color: #f56565; } /* red */
+.entry-card[data-mood="grateful"] { border-left-color: #d6bcfa; } /* purple */
+.entry-card[data-mood="neutral"] { border-left-color: #a0aec0; } /* gray */
+.entry-card[data-mood="numb"] { border-left-color: #e2e8f0; } /* light gray */
+
+.entry-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.entry-date {
+    font-weight: bold;
+    color: #4a5568;
+    font-size: 1.1rem;
+}
+
+.entry-mood {
+<<<<<<< Updated upstream
+    font-size: 1.5rem;
+    background: #e9eafc;
+    padding: 5px;
+    border-radius: 50%;
+=======
+    font-size: 1.8rem;
+>>>>>>> Stashed changes
+    line-height: 1;
+}
+
+.entry-text {
+<<<<<<< Updated upstream
+    color: #2d3748;
+    white-space: pre-wrap; /* Preserve line breaks */
+    flex-grow: 1;
+=======
+    color: #4a5568;
+    line-height: 1.7;
+    margin-bottom: 15px;
+}
+
+.entry-footer {
+    text-align: right;
+}
+
+.delete-btn {
+    background: #f56565;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.delete-btn:hover {
+    background: #c53030;
+>>>>>>> Stashed changes
+}
+
+.no-entries {
+    text-align: center;
+    padding: 40px;
+    color: #718096;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    main {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "calendar"
+            "form"
+            "entries";
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    header h1 {
+        font-size: 2rem;
+    }
+    .entry-form, .entries-section, .calendar-container, .search-filter-container {
+        padding: 20px;
+    }
+    .mood-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+}
+
+/* Utility Classes for Messages */
+.success-message {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #48bb78;
+>>>>>>> Stashed changes
     color: white;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
