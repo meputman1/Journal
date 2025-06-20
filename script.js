@@ -286,73 +286,18 @@ function displayEntries(entriesToShow = journalEntries) {
 
 /**
  * Creates an HTML element for a single journal entry
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
- * @param {Object} entry - The journal entry object
- * @returns {HTMLElement} The entry card element
-=======
  * @param {object} entry - The journal entry object
  * @returns {HTMLElement} - The entry card element
->>>>>>> Stashed changes
-=======
- * @param {object} entry - The journal entry object
- * @returns {HTMLElement} - The entry card element
->>>>>>> Stashed changes
-=======
- * @param {object} entry - The journal entry object
- * @returns {HTMLElement} - The entry card element
->>>>>>> Stashed changes
  */
 function createEntryCard(entry) {
     const card = document.createElement('div');
     card.className = 'entry-card';
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    
-    // Format the date
-    const date = new Date(entry.date);
-    const formattedDate = date.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-    
-    // Get mood emoji and text
-=======
     card.dataset.mood = entry.mood; // Add data-mood attribute for styling
 
->>>>>>> Stashed changes
-=======
-    card.dataset.mood = entry.mood; // Add data-mood attribute for styling
-
->>>>>>> Stashed changes
-=======
-    card.dataset.mood = entry.mood; // Add data-mood attribute for styling
-
->>>>>>> Stashed changes
     const moodInfo = getMoodInfo(entry.mood);
     
     card.innerHTML = `
         <div class="entry-header">
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-            <span class="entry-date">${formattedDate}</span>
-            ${entry.mood ? `<span class="entry-mood">${moodInfo.emoji} ${moodInfo.text}</span>` : ''}
-        </div>
-        <div class="entry-text">${entry.text}</div>
-    `;
-    
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
             <span class="entry-date">${formatDate(entry.date)}</span>
             <span class="entry-mood" title="${moodInfo.label}">${moodInfo.emoji}</span>
         </div>
@@ -367,33 +312,27 @@ function createEntryCard(entry) {
         deleteEntry(entry.id);
     });
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
     return card;
 }
 
 /**
  * Returns mood information based on mood value
  * @param {string} mood - The mood value
- * @returns {Object} Object containing emoji and text for the mood
+ * @returns {Object} Object containing emoji and label for the mood
  */
 function getMoodInfo(mood) {
     const moodMap = {
-        'happy': { emoji: '😊', text: 'Happy' },
-        'sad': { emoji: '😢', text: 'Sad' },
-        'excited': { emoji: '🤩', text: 'Excited' },
-        'calm': { emoji: '😌', text: 'Calm' },
-        'anxious': { emoji: '😰', text: 'Anxious' },
-        'grateful': { emoji: '🙏', text: 'Grateful' },
-        'neutral': { emoji: '😐', text: 'Neutral' }
+        'happy': { emoji: '😊', label: 'Happy' },
+        'sad': { emoji: '😢', label: 'Sad' },
+        'excited': { emoji: '🤩', label: 'Excited' },
+        'calm': { emoji: '😌', label: 'Calm' },
+        'anxious': { emoji: '😰', label: 'Anxious' },
+        'grateful': { emoji: '🙏', label: 'Grateful' },
+        'neutral': { emoji: '😐', label: 'Neutral' },
+        'numb': { emoji: '😶‍🌫️', label: 'Numb' }
     };
     
-    return moodMap[mood] || { emoji: '😐', text: 'Unknown' };
+    return moodMap[mood] || { emoji: '😐', label: 'Unknown' };
 }
 
 /**
@@ -505,6 +444,20 @@ function getDatesWithEntries() {
 //         showSuccessMessage('All entries cleared!');
 //     }
 // }
+
+/**
+ * Deletes a journal entry by ID
+ * @param {number} entryId - The ID of the entry to delete
+ */
+function deleteEntry(entryId) {
+    if (confirm('Are you sure you want to delete this entry?')) {
+        journalEntries = journalEntries.filter(entry => entry.id !== entryId);
+        saveEntries();
+        renderCalendar();
+        displayEntries();
+        showSuccessMessage('Entry deleted successfully!');
+    }
+}
 
 // Export functions for potential future use (if needed)
 if (typeof module !== 'undefined' && module.exports) {
