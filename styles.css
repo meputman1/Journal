@@ -40,7 +40,7 @@ header p {
 /* Main content layout */
 main {
     display: grid;
-    grid-template-columns: 1.2fr 1fr;
+    grid-template-columns: 1fr 2fr;
     grid-template-rows: auto 1fr;
     grid-template-areas:
         "calendar form"
@@ -109,9 +109,9 @@ main {
 
 /* Calendar Grid */
 .calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .calendar-weekdays,
