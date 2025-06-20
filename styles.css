@@ -57,6 +57,7 @@ main {
 
 .entry-form {
     grid-area: form;
+    color: #718096;
 }
 
 .entries-section {
@@ -124,7 +125,6 @@ main {
     font-weight: bold;
     text-align: center;
     padding: 10px 0;
-    color: #718096;
 }
 
 .calendar-days {
