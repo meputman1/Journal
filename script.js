@@ -286,12 +286,18 @@ function displayEntries(entriesToShow = journalEntries) {
 
 /**
  * Creates an HTML element for a single journal entry
+<<<<<<< Updated upstream
  * @param {Object} entry - The journal entry object
  * @returns {HTMLElement} The entry card element
+=======
+ * @param {object} entry - The journal entry object
+ * @returns {HTMLElement} - The entry card element
+>>>>>>> Stashed changes
  */
 function createEntryCard(entry) {
     const card = document.createElement('div');
     card.className = 'entry-card';
+<<<<<<< Updated upstream
     
     // Format the date
     const date = new Date(entry.date);
@@ -305,16 +311,37 @@ function createEntryCard(entry) {
     });
     
     // Get mood emoji and text
+=======
+    card.dataset.mood = entry.mood; // Add data-mood attribute for styling
+
+>>>>>>> Stashed changes
     const moodInfo = getMoodInfo(entry.mood);
     
     card.innerHTML = `
         <div class="entry-header">
+<<<<<<< Updated upstream
             <span class="entry-date">${formattedDate}</span>
             ${entry.mood ? `<span class="entry-mood">${moodInfo.emoji} ${moodInfo.text}</span>` : ''}
         </div>
         <div class="entry-text">${entry.text}</div>
     `;
     
+=======
+            <span class="entry-date">${formatDate(entry.date)}</span>
+            <span class="entry-mood" title="${moodInfo.label}">${moodInfo.emoji}</span>
+        </div>
+        <p class="entry-text">${entry.text}</p>
+        <div class="entry-footer">
+            <button class="delete-btn" data-id="${entry.id}">Delete</button>
+        </div>
+    `;
+
+    // Add event listener for the delete button
+    card.querySelector('.delete-btn').addEventListener('click', () => {
+        deleteEntry(entry.id);
+    });
+
+>>>>>>> Stashed changes
     return card;
 }
 
