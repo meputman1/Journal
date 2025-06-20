@@ -14,7 +14,57 @@
         </header>
 
         <main>
-            <!-- Journal Entry Form -->
+            <!-- Calendar and Search Section (Left Side) -->
+            <section class="calendar-search-section">
+                <!-- Calendar View -->
+                <div class="calendar-container">
+                    <h2>📅 Calendar View</h2>
+                    <div class="calendar-header">
+                        <button id="prevMonth" class="calendar-nav-btn">‹</button>
+                        <h3 id="currentMonth">January 2024</h3>
+                        <button id="nextMonth" class="calendar-nav-btn">›</button>
+                    </div>
+                    <div class="calendar-grid">
+                        <div class="calendar-weekdays">
+                            <div>Sun</div>
+                            <div>Mon</div>
+                            <div>Tue</div>
+                            <div>Wed</div>
+                            <div>Thu</div>
+                            <div>Fri</div>
+                            <div>Sat</div>
+                        </div>
+                        <div id="calendarDays" class="calendar-days">
+                            <!-- Calendar days will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search and Filter Controls -->
+                <div class="search-filter-container">
+                    <h2>🔍 Search & Filter</h2>
+                    <div class="search-controls">
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            placeholder="Search entries..."
+                            class="search-input"
+                        >
+                        <div class="mood-filter-buttons">
+                            <button type="button" class="filter-btn active" data-mood="" title="All Entries">All</button>
+                            <button type="button" class="filter-btn" data-mood="happy" title="Happy">😊</button>
+                            <button type="button" class="filter-btn" data-mood="sad" title="Sad">😢</button>
+                            <button type="button" class="filter-btn" data-mood="excited" title="Excited">🤩</button>
+                            <button type="button" class="filter-btn" data-mood="calm" title="Calm">😌</button>
+                            <button type="button" class="filter-btn" data-mood="anxious" title="Anxious">😰</button>
+                            <button type="button" class="filter-btn" data-mood="grateful" title="Grateful">🙏</button>
+                            <button type="button" class="filter-btn" data-mood="neutral" title="Neutral">😐</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Journal Entry Form (Right Side) -->
             <section class="entry-form">
                 <h2>New Entry</h2>
                 <form id="journalForm">
@@ -45,32 +95,9 @@
                 </form>
             </section>
 
-            <!-- Search and Filter Section -->
-            <section class="search-section">
-                <h2>Search Entries</h2>
-                <div class="search-controls">
-                    <input 
-                        type="text" 
-                        id="searchInput" 
-                        placeholder="Search entries..."
-                        class="search-input"
-                    >
-                    <div class="mood-filter-buttons">
-                        <button type="button" class="filter-btn active" data-mood="" title="All Entries">All</button>
-                        <button type="button" class="filter-btn" data-mood="happy" title="Happy">😊</button>
-                        <button type="button" class="filter-btn" data-mood="sad" title="Sad">😢</button>
-                        <button type="button" class="filter-btn" data-mood="excited" title="Excited">🤩</button>
-                        <button type="button" class="filter-btn" data-mood="calm" title="Calm">😌</button>
-                        <button type="button" class="filter-btn" data-mood="anxious" title="Anxious">😰</button>
-                        <button type="button" class="filter-btn" data-mood="grateful" title="Grateful">🙏</button>
-                        <button type="button" class="filter-btn" data-mood="neutral" title="Neutral">😐</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Journal Entries Display -->
+            <!-- Journal Entries Display (Bottom) -->
             <section class="entries-section">
-                <h2>Your Entries</h2>
+                <h2>📝 Your Entries</h2>
                 <div id="entriesContainer" class="entries-container">
                     <!-- Entries will be dynamically added here -->
                 </div>
