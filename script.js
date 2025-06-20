@@ -105,24 +105,27 @@ function handleFormSubmit(event) {
     const text = entryText.value.trim();
     const mood = selectedMood;
     
-    // Validate that text is not empty
+    // Validate that text is not empty and mood is selected
     if (!text) {
         alert('Please write something in your journal entry!');
         return;
     }
+    if (!mood) {
+        alert('Please select your mood!');
+        return;
+    }
     
-    // Create new entry object with enhanced structure
+    // Create new entry object
     const newEntry = {
-        id: Date.now(), // Use timestamp as unique ID
+        id: Date.now(),
         text: text,
         mood: mood,
         date: new Date().toISOString(),
-        timestamp: Date.now(),
-        dateString: new Date().toISOString().split('T')[0] // YYYY-MM-DD format for easy filtering
+        dateString: new Date().toISOString().split('T')[0]
     };
     
     // Add entry to array and save
-    journalEntries.unshift(newEntry); // Add to beginning of array
+    journalEntries.unshift(newEntry);
     saveEntries();
     
     // Update UI
@@ -134,8 +137,6 @@ function handleFormSubmit(event) {
     
     // Reset form
     journalForm.reset();
-    
-    // Reset mood selection
     moodButtons.forEach(btn => btn.classList.remove('selected'));
     selectedMood = '';
     selectedMoodInput.value = '';
@@ -176,28 +177,120 @@ function loadEntries() {
 }
 
 /**
- * Displays all journal entries in the UI
+ * Renders the calendar for the current month
+ */
+function renderCalendar() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    // Update month display
+    currentMonthDisplay.textContent = `${currentDate.toLocaleString('default', { month: 'long' })} ${year}`;
+    
+    // Get calendar grid info
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay(); // 0 = Sunday
+    
+    // Clear calendar
+    calendarDaysContainer.innerHTML = '';
+    
+    // 1. Add empty cells for days before the month starts
+    for (let i = 0; i < startingDayOfWeek; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'calendar-day other-month';
+        calendarDaysContainer.appendChild(emptyDay);
+    }
+    
+    // 2. Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day';
+        dayElement.textContent = day;
+        
+        const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        
+        // Add classes for styling
+        if (journalEntries.some(entry => entry.dateString === dateString)) {
+            dayElement.classList.add('has-entries');
+        }
+        
+        const today = new Date();
+        if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+            dayElement.classList.add('today');
+        }
+        
+        if (selectedCalendarDate === dateString) {
+            dayElement.classList.add('selected');
+        }
+        
+        dayElement.addEventListener('click', () => selectCalendarDate(dateString));
+        calendarDaysContainer.appendChild(dayElement);
+    }
+
+    // 3. Add empty cells to fill the end of the grid (for consistent 6-week layout)
+    const totalCells = 42; // 6 weeks * 7 days
+    const cellsRendered = calendarDaysContainer.children.length;
+    const remainingCells = totalCells - cellsRendered;
+
+    for (let i = 0; i < remainingCells; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'calendar-day other-month';
+        calendarDaysContainer.appendChild(emptyDay);
+    }
+}
+
+/**
+ * Navigates to the previous or next month
+ * @param {number} direction - -1 for previous, 1 for next
+ */
+function navigateMonth(direction) {
+    currentDate.setMonth(currentDate.getMonth() + direction);
+    selectedCalendarDate = null; // Reset selected date when changing months
+    renderCalendar();
+    filterEntries(); // Re-apply current filters
+}
+
+/**
+ * Selects a date in the calendar and filters entries
+ * @param {string} dateString - The date to select (YYYY-MM-DD)
+ */
+function selectCalendarDate(dateString) {
+    // If the clicked date is already selected, deselect it
+    if (selectedCalendarDate === dateString) {
+        selectedCalendarDate = null;
+    } else {
+        selectedCalendarDate = dateString;
+    }
+    
+    // Re-render calendar and filter entries
+    renderCalendar();
+    filterEntries();
+}
+
+/**
+ * Displays journal entries in the UI
  * @param {Array} entriesToShow - Optional array of entries to display (for filtering)
  */
 function displayEntries(entriesToShow = journalEntries) {
-    // Clear current entries
     entriesContainer.innerHTML = '';
-    
-    // Show/hide no entries message
+
     if (entriesToShow.length === 0) {
         noEntries.style.display = 'block';
-        entriesContainer.style.display = 'none';
-        return;
+        if (selectedCalendarDate) {
+            noEntries.querySelector('p').textContent = `No entries for ${formatDate(selectedCalendarDate)}.`;
+        } else if (searchInput.value) {
+            noEntries.querySelector('p').textContent = 'No entries match your search.';
+        } else {
+            noEntries.querySelector('p').textContent = 'No journal entries yet. Start writing!';
+        }
     } else {
         noEntries.style.display = 'none';
-        entriesContainer.style.display = 'block';
+        entriesToShow.forEach(entry => {
+            const entryCard = createEntryCard(entry);
+            entriesContainer.appendChild(entryCard);
+        });
     }
-    
-    // Create and append entry cards
-    entriesToShow.forEach(entry => {
-        const entryCard = createEntryCard(entry);
-        entriesContainer.appendChild(entryCard);
-    });
 }
 
 /**
@@ -226,11 +319,18 @@ function createEntryCard(entry) {
     card.innerHTML = `
         <div class="entry-header">
             <span class="entry-date">${formattedDate}</span>
-            ${entry.mood ? `<span class="entry-mood">${moodInfo.emoji} ${moodInfo.text}</span>` : ''}
+            <span class="entry-mood" title="${moodInfo.name}">${moodInfo.emoji}</span>
         </div>
         <div class="entry-text">${entry.text}</div>
+        <button class="delete-btn" data-id="${entry.id}">Delete</button>
     `;
     
+    // Add event listener to the delete button
+    card.querySelector('.delete-btn').addEventListener('click', (e) => {
+        const entryId = e.target.getAttribute('data-id');
+        deleteEntry(entryId);
+    });
+
     return card;
 }
 
@@ -240,17 +340,17 @@ function createEntryCard(entry) {
  * @returns {Object} Object containing emoji and text for the mood
  */
 function getMoodInfo(mood) {
-    const moodMap = {
-        'happy': { emoji: '😊', text: 'Happy' },
-        'sad': { emoji: '😢', text: 'Sad' },
-        'excited': { emoji: '🤩', text: 'Excited' },
-        'calm': { emoji: '😌', text: 'Calm' },
-        'anxious': { emoji: '😰', text: 'Anxious' },
-        'grateful': { emoji: '🙏', text: 'Grateful' },
-        'neutral': { emoji: '😐', text: 'Neutral' }
+    const moods = {
+        'happy': { emoji: '😊', name: 'Happy' },
+        'sad': { emoji: '😢', name: 'Sad' },
+        'excited': { emoji: '🤩', name: 'Excited' },
+        'calm': { emoji: '😌', name: 'Calm' },
+        'anxious': { emoji: '😰', name: 'Anxious' },
+        'grateful': { emoji: '🙏', name: 'Grateful' },
+        'neutral': { emoji: '😐', name: 'Neutral' },
+        'default': { emoji: '❓', name: 'Unknown' }
     };
-    
-    return moodMap[mood] || { emoji: '😐', text: 'Unknown' };
+    return moods[mood] || moods['default'];
 }
 
 /**
@@ -293,31 +393,19 @@ function filterEntries() {
  * @param {string} message - The success message to display
  */
 function showSuccessMessage(message) {
-    // Remove any existing success message
-    const existingMessage = document.querySelector('.success-message');
-    if (existingMessage) {
-        existingMessage.remove();
-    }
-    
-    // Create new success message
     const successDiv = document.createElement('div');
     successDiv.className = 'success-message';
     successDiv.textContent = message;
     
-    // Insert after the form
-    const entryForm = document.querySelector('.entry-form');
-    entryForm.parentNode.insertBefore(successDiv, entryForm.nextSibling);
+    document.body.appendChild(successDiv);
     
-    // Remove message after 3 seconds
     setTimeout(() => {
-        if (successDiv.parentNode) {
-            successDiv.remove();
-        }
+        successDiv.remove();
     }, 3000);
 }
 
 /**
- * Utility function to format date for display
+ * Formats a date string into a more readable format
  * @param {string} dateString - ISO date string
  * @returns {string} Formatted date string
  */
@@ -325,10 +413,9 @@ function formatDate(dateString) {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
         year: 'numeric',
-        month: 'short',
+        month: 'long',
         day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        timeZone: 'UTC' // Ensure date is not shifted by local timezone
     });
 }
 
@@ -347,6 +434,37 @@ function getEntriesForDate(dateString) {
  */
 function getDatesWithEntries() {
     return [...new Set(journalEntries.map(entry => entry.dateString))];
+}
+
+/**
+ * Deletes an entry by its ID
+ * @param {string} entryId - The ID of the entry to delete
+ */
+function deleteEntry(entryId) {
+    // Confirm with the user
+    if (!confirm('Are you sure you want to delete this entry?')) {
+        return;
+    }
+
+    // Find the index of the entry
+    const entryIndex = journalEntries.findIndex(entry => entry.id == entryId);
+
+    if (entryIndex > -1) {
+        // Remove the entry from the array
+        journalEntries.splice(entryIndex, 1);
+
+        // Save the updated entries array
+        saveEntries();
+
+        // Re-render the UI
+        renderCalendar();
+        filterEntries(); // Use filterEntries to respect current filters
+
+        // Show a success message
+        showSuccessMessage('Entry deleted successfully!');
+    } else {
+        console.error('Could not find entry to delete with ID:', entryId);
+    }
 }
 
 /**
@@ -378,78 +496,3 @@ if (typeof module !== 'undefined' && module.exports) {
         getDatesWithEntries
     };
 }
-
-function renderCalendar() {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    
-    // Update month display
-    const monthNames = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    currentMonthDisplay.textContent = `${monthNames[month]} ${year}`;
-    
-    // Get first day of month and number of days
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
-    
-    // Clear calendar
-    calendarDaysContainer.innerHTML = '';
-    
-    // Total cells in a 6-week grid
-    const totalGridCells = 42;
-
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < startingDayOfWeek; i++) {
-        const emptyDay = document.createElement('div');
-        emptyDay.className = 'calendar-day other-month';
-        calendarDaysContainer.appendChild(emptyDay);
-    }
-    
-    // Add days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dayElement = document.createElement('div');
-        dayElement.className = 'calendar-day';
-        dayElement.textContent = day;
-        
-        // Create date string for comparison
-        const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        
-        // Check if this date has entries
-        const hasEntries = journalEntries.some(entry => entry.dateString === dateString);
-        if (hasEntries) {
-            dayElement.classList.add('has-entries');
-        }
-        
-        // Check if this is today
-        const today = new Date();
-        if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
-            dayElement.classList.add('today');
-        }
-        
-        // Check if this is the selected date
-        if (selectedCalendarDate && selectedCalendarDate === dateString) {
-            dayElement.classList.add('selected');
-        }
-        
-        // Add click event
-        dayElement.addEventListener('click', () => selectCalendarDate(dateString));
-        
-        calendarDaysContainer.appendChild(dayElement);
-    }
-
-    // Add empty cells for days after the last day of the month
-    const remainingCells = totalGridCells - calendarDaysContainer.children.length;
-    for (let i = 0; i < remainingCells; i++) {
-        const emptyDay = document.createElement('div');
-        emptyDay.className = 'calendar-day other-month';
-        calendarDaysContainer.appendChild(emptyDay);
-    }
-}
-
-/**
- * Navigates to previous or next month
- */
