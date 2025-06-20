@@ -202,7 +202,7 @@ function createEntryCard(entry) {
     card.innerHTML = `
         <div class="entry-header">
             <span class="entry-date">${formattedDate}</span>
-            ${entry.mood ? `<span class="entry-mood">${moodInfo.emoji} ${moodInfo.text}</span>` : ''}
+            ${entry.mood ? `<span class="entry-mood">${moodInfo.emoji} ${moodInfo.name}</span>` : ''}
         </div>
         <div class="entry-text">${entry.text}</div>
     `;
@@ -216,17 +216,25 @@ function createEntryCard(entry) {
  * @returns {Object} Object containing emoji and text for the mood
  */
 function getMoodInfo(mood) {
-    const moodMap = {
-        'happy': { emoji: '😊', text: 'Happy' },
-        'sad': { emoji: '😢', text: 'Sad' },
-        'excited': { emoji: '🤩', text: 'Excited' },
-        'calm': { emoji: '😌', text: 'Calm' },
-        'anxious': { emoji: '😰', text: 'Anxious' },
-        'grateful': { emoji: '🙏', text: 'Grateful' },
-        'neutral': { emoji: '😐', text: 'Neutral' }
+    const moods = {
+        'happy': { emoji: '😊', name: 'Happy' },
+        'sad': { emoji: '😢', name: 'Sad' },
+        'excited': { emoji: '🤩', name: 'Excited' },
+        'calm': { emoji: '😌', name: 'Calm' },
+        'anxious': { emoji: '😰', name: 'Anxious' },
+        'grateful': { emoji: '🙏', name: 'Grateful' },
+        'neutral': { emoji: '😐', name: 'Neutral' },
+        'angry': { emoji: '😡', name: 'Angry' },
+        'motivated': { emoji: '😤', name: 'Motivated' },
+        'in-love': { emoji: '😍', name: 'In Love' },
+        'reflective': { emoji: '🤔', name: 'Reflective' },
+        'tired': { emoji: '😴', name: 'Tired' },
+        'overwhelmed': { emoji: '🤯', name: 'Overwhelmed' },
+        'proud': { emoji: '🥳', name: 'Proud' },
+        'numb': { emoji: '😶‍🌫️', name: 'Numb' },
+        'default': { emoji: '❓', name: 'Unknown' }
     };
-    
-    return moodMap[mood] || { emoji: '😐', text: 'Unknown' };
+    return moods[mood] || moods['default'];
 }
 
 /**
