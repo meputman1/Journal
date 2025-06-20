@@ -95,7 +95,30 @@
                 </form>
             </section>
 
-            <!-- Journal Entries Display (Bottom) -->
+            <!-- Search and Filter Section -->
+            <section class="search-section">
+                <h2>Search Entries</h2>
+                <div class="search-controls">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Search entries..."
+                        class="search-input"
+                    >
+                    <div class="mood-filter-buttons">
+                        <button type="button" class="filter-btn active" data-mood="" title="All Entries">All</button>
+                        <button type="button" class="filter-btn" data-mood="happy" title="Happy">😊</button>
+                        <button type="button" class="filter-btn" data-mood="sad" title="Sad">😢</button>
+                        <button type="button" class="filter-btn" data-mood="excited" title="Excited">🤩</button>
+                        <button type="button" class="filter-btn" data-mood="calm" title="Calm">😌</button>
+                        <button type="button" class="filter-btn" data-mood="anxious" title="Anxious">😰</button>
+                        <button type="button" class="filter-btn" data-mood="grateful" title="Grateful">🙏</button>
+                        <button type="button" class="filter-btn" data-mood="neutral" title="Neutral">😐</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Journal Entries Display -->
             <section class="entries-section">
                 <h2>📝 Your Entries</h2>
                 <div id="entriesContainer" class="entries-container">
