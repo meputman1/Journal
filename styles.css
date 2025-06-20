@@ -63,10 +63,6 @@ main {
     grid-area: entries;
 }
 
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 /* Form & Entries Section Styling */
 .entry-form,
 .entries-section,
@@ -187,10 +183,6 @@ main {
     background-color: #d1c4e9;
 }
 
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 /* Form Group */
 .form-group {
     margin-bottom: 20px;
@@ -254,7 +246,6 @@ main {
     transform: scale(1.1);
 }
 
-
 /* Save Button */
 .save-btn {
     width: 100%;
@@ -274,13 +265,6 @@ main {
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
 
-<<<<<<< Updated upstream
-=======
-.save-btn:active {
-    transform: translateY(0);
-}
-
->>>>>>> Stashed changes
 /* Search and Filter */
 .search-controls {
     display: flex;
@@ -388,10 +372,6 @@ main {
     color: #718096;
 }
 
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 /* Responsive Design */
 @media (max-width: 1200px) {
     main {
