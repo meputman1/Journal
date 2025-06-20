@@ -1,10 +1,11 @@
-// Journal App JavaScript
-// This file contains all the logic for the journaling application
+// Enhanced Journal App JavaScript
 
 // Global variables
 let journalEntries = [];
 const STORAGE_KEY = 'journalEntries';
 let selectedMood = '';
+let currentDate = new Date();
+let selectedCalendarDate = null;
 
 // DOM elements
 const journalForm = document.getElementById('journalForm');
@@ -16,134 +17,133 @@ const searchInput = document.getElementById('searchInput');
 const moodButtons = document.querySelectorAll('.mood-btn');
 const filterButtons = document.querySelectorAll('.filter-btn');
 
+// Calendar elements
+const prevMonthBtn = document.getElementById('prevMonth');
+const nextMonthBtn = document.getElementById('nextMonth');
+const currentMonthDisplay = document.getElementById('currentMonth');
+const calendarDaysContainer = document.getElementById('calendarDays');
+
 // Initialize the app when the page loads
 document.addEventListener('DOMContentLoaded', function() {
     loadEntries();
-    displayEntries();
     setupEventListeners();
+    renderCalendar();
+    displayEntries();
 });
 
 /**
  * Sets up all event listeners for the application
  */
 function setupEventListeners() {
-    // Form submission for new entries
     journalForm.addEventListener('submit', handleFormSubmit);
     
-    // Mood button selection
     moodButtons.forEach(button => {
         button.addEventListener('click', handleMoodSelection);
     });
     
-    // Filter button selection
     filterButtons.forEach(button => {
         button.addEventListener('click', handleFilterSelection);
     });
     
-    // Search functionality
     searchInput.addEventListener('input', filterEntries);
+    
+    prevMonthBtn.addEventListener('click', () => navigateMonth(-1));
+    nextMonthBtn.addEventListener('click', () => navigateMonth(1));
 }
 
 /**
  * Handles mood button selection in the form
- * @param {Event} event - The click event
  */
 function handleMoodSelection(event) {
-    const clickedButton = event.target;
+    const clickedButton = event.target.closest('.mood-btn');
+    if (!clickedButton) return;
+    
     const mood = clickedButton.dataset.mood;
     
-    // Remove selected class from all mood buttons
     moodButtons.forEach(btn => btn.classList.remove('selected'));
-    
-    // Add selected class to clicked button
     clickedButton.classList.add('selected');
     
-    // Update the hidden input and global variable
     selectedMood = mood;
     selectedMoodInput.value = mood;
 }
 
 /**
  * Handles filter button selection
- * @param {Event} event - The click event
  */
 function handleFilterSelection(event) {
-    const clickedButton = event.target;
-    const mood = clickedButton.dataset.mood;
-    
-    // Remove active class from all filter buttons
+    const clickedButton = event.target.closest('.filter-btn');
+    if (!clickedButton) return;
+
     filterButtons.forEach(btn => btn.classList.remove('active'));
-    
-    // Add active class to clicked button
     clickedButton.classList.add('active');
     
-    // Filter entries
     filterEntries();
 }
 
 /**
- * Handles the form submission when user saves a new entry
- * @param {Event} event - The form submission event
+ * Handles the form submission
  */
 function handleFormSubmit(event) {
     event.preventDefault();
     
-    // Get form data
     const text = entryText.value.trim();
     const mood = selectedMood;
     
-    // Validate that text is not empty
     if (!text) {
         alert('Please write something in your journal entry!');
         return;
     }
+    if (!mood) {
+        alert('Please select your mood!');
+        return;
+    }
     
-    // Create new entry object
     const newEntry = {
-        id: Date.now(), // Use timestamp as unique ID
+        id: Date.now(),
         text: text,
         mood: mood,
         date: new Date().toISOString(),
-        timestamp: Date.now()
+        dateString: new Date().toISOString().split('T')[0]
     };
     
-    // Add entry to array and save
-    journalEntries.unshift(newEntry); // Add to beginning of array
+    journalEntries.unshift(newEntry);
     saveEntries();
-    displayEntries();
     
-    // Show success message
+    renderCalendar();
+    filterEntries(); 
+    
     showSuccessMessage('Journal entry saved successfully!');
     
-    // Reset form
     journalForm.reset();
-    
-    // Reset mood selection
     moodButtons.forEach(btn => btn.classList.remove('selected'));
     selectedMood = '';
     selectedMoodInput.value = '';
 }
 
 /**
- * Saves journal entries to localStorage
+ * Saves entries to localStorage
  */
 function saveEntries() {
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(journalEntries));
     } catch (error) {
         console.error('Error saving entries to localStorage:', error);
-        alert('There was an error saving your entry. Please try again.');
     }
 }
 
 /**
- * Loads journal entries from localStorage
+ * Loads entries from localStorage
  */
 function loadEntries() {
     try {
         const savedEntries = localStorage.getItem(STORAGE_KEY);
         if (savedEntries) {
-            journalEntries = JSON.parse(savedEntries);
+            journalEntries = JSON.parse(savedEntries).map(entry => {
+                if (!entry.dateString) {
+                    entry.dateString = new Date(entry.date).toISOString().split('T')[0];
+                }
+                return entry;
+            });
         }
     } catch (error) {
         console.error('Error loading entries from localStorage:', error);
@@ -152,68 +152,134 @@ function loadEntries() {
 }
 
 /**
- * Displays all journal entries in the UI
- * @param {Array} entriesToShow - Optional array of entries to display (for filtering)
+ * Renders the calendar
  */
-function displayEntries(entriesToShow = journalEntries) {
-    // Clear current entries
-    entriesContainer.innerHTML = '';
-    
-    // Show/hide no entries message
-    if (entriesToShow.length === 0) {
-        noEntries.style.display = 'block';
-        entriesContainer.style.display = 'none';
+function renderCalendar() {
+    if (!calendarDaysContainer) {
+        console.error("Calendar container not found!");
         return;
-    } else {
-        noEntries.style.display = 'none';
-        entriesContainer.style.display = 'block';
+    }
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    currentMonthDisplay.textContent = `${currentDate.toLocaleString('default', { month: 'long' })} ${year}`;
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    calendarDaysContainer.innerHTML = '';
+    
+    for (let i = 0; i < startingDayOfWeek; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'calendar-day other-month';
+        calendarDaysContainer.appendChild(emptyDay);
     }
     
-    // Create and append entry cards
-    entriesToShow.forEach(entry => {
-        const entryCard = createEntryCard(entry);
-        entriesContainer.appendChild(entryCard);
-    });
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day';
+        dayElement.textContent = day;
+        
+        const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        
+        if (journalEntries.some(entry => entry.dateString === dateString)) {
+            dayElement.classList.add('has-entries');
+        }
+        
+        const today = new Date();
+        if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+            dayElement.classList.add('today');
+        }
+        
+        if (selectedCalendarDate === dateString) {
+            dayElement.classList.add('selected');
+        }
+        
+        dayElement.addEventListener('click', () => selectCalendarDate(dateString));
+        calendarDaysContainer.appendChild(dayElement);
+    }
+
+    const totalCells = 42;
+    const cellsRendered = calendarDaysContainer.children.length;
+    if (cellsRendered > totalCells) {
+        // This case should ideally not happen with correct logic
+        console.error("Error: More than 42 cells rendered in the calendar.");
+        return;
+    }
+    const remainingCells = totalCells - cellsRendered;
+
+    for (let i = 0; i < remainingCells; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'calendar-day other-month';
+        calendarDaysContainer.appendChild(emptyDay);
+    }
 }
 
 /**
- * Creates an HTML element for a single journal entry
- * @param {Object} entry - The journal entry object
- * @returns {HTMLElement} The entry card element
+ * Navigates the calendar month
+ */
+function navigateMonth(direction) {
+    currentDate.setMonth(currentDate.getMonth() + direction);
+    renderCalendar();
+}
+
+/**
+ * Selects a date on the calendar
+ */
+function selectCalendarDate(dateString) {
+    selectedCalendarDate = selectedCalendarDate === dateString ? null : dateString;
+    renderCalendar();
+    filterEntries();
+}
+
+/**
+ * Displays journal entries
+ */
+function displayEntries(entriesToShow) {
+    const entries = entriesToShow || journalEntries;
+    if(!entriesContainer) return;
+    entriesContainer.innerHTML = '';
+
+    if (entries.length === 0) {
+        if(noEntries) noEntries.style.display = 'block';
+        let message = 'No journal entries yet. Start writing!';
+        if (selectedCalendarDate) {
+            message = `No entries for ${formatDate(selectedCalendarDate)}.`;
+        } else if (searchInput.value || document.querySelector('.filter-btn.active:not([data-mood=""])')) {
+            message = 'No entries match your search or filter.';
+        }
+        if(noEntries) noEntries.querySelector('p').textContent = message;
+    } else {
+        if(noEntries) noEntries.style.display = 'none';
+        entries.forEach(entry => {
+            const entryCard = createEntryCard(entry);
+            entriesContainer.appendChild(entryCard);
+        });
+    }
+}
+
+/**
+ * Creates an entry card element
  */
 function createEntryCard(entry) {
     const card = document.createElement('div');
     card.className = 'entry-card';
-    
-    // Format the date
-    const date = new Date(entry.date);
-    const formattedDate = date.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-    
-    // Get mood emoji and text
     const moodInfo = getMoodInfo(entry.mood);
     
     card.innerHTML = `
         <div class="entry-header">
-            <span class="entry-date">${formattedDate}</span>
-            ${entry.mood ? `<span class="entry-mood">${moodInfo.emoji} ${moodInfo.name}</span>` : ''}
+            <span class="entry-date">${formatDate(entry.date)}</span>
+            <span class="entry-mood" title="${moodInfo.name}">${moodInfo.emoji}</span>
         </div>
-        <div class="entry-text">${entry.text}</div>
+        <div class="entry-text">${entry.text.replace(/\n/g, '<br>')}</div>
     `;
-    
     return card;
 }
 
 /**
- * Returns mood information based on mood value
- * @param {string} mood - The mood value
- * @returns {Object} Object containing emoji and text for the mood
+ * Gets mood info (emoji and name)
  */
 function getMoodInfo(mood) {
     const moods = {
@@ -238,74 +304,54 @@ function getMoodInfo(mood) {
 }
 
 /**
- * Filters entries based on search text and mood selection
+ * Filters entries based on all criteria
  */
 function filterEntries() {
+    let filtered = [...journalEntries];
+    
     const searchTerm = searchInput.value.toLowerCase().trim();
-    const activeFilterButton = document.querySelector('.filter-btn.active');
-    const selectedMood = activeFilterButton ? activeFilterButton.dataset.mood : '';
-    
-    let filteredEntries = journalEntries;
-    
-    // Filter by search term
     if (searchTerm) {
-        filteredEntries = filteredEntries.filter(entry => 
-            entry.text.toLowerCase().includes(searchTerm)
-        );
+        filtered = filtered.filter(entry => entry.text.toLowerCase().includes(searchTerm));
     }
     
-    // Filter by mood
-    if (selectedMood) {
-        filteredEntries = filteredEntries.filter(entry => 
-            entry.mood === selectedMood
-        );
+    const activeFilterButton = document.querySelector('.filter-btn.active');
+    const moodFilter = activeFilterButton ? activeFilterButton.dataset.mood : '';
+    if (moodFilter) {
+        filtered = filtered.filter(entry => entry.mood === moodFilter);
     }
     
-    // Display filtered entries
-    displayEntries(filteredEntries);
+    if (selectedCalendarDate) {
+        filtered = filtered.filter(entry => entry.dateString === selectedCalendarDate);
+    }
+
+    displayEntries(filtered);
 }
 
 /**
- * Shows a success message when an entry is saved
- * @param {string} message - The success message to display
+ * Shows a temporary success message
  */
 function showSuccessMessage(message) {
-    // Remove any existing success message
-    const existingMessage = document.querySelector('.success-message');
-    if (existingMessage) {
-        existingMessage.remove();
-    }
-    
-    // Create new success message
     const successDiv = document.createElement('div');
     successDiv.className = 'success-message';
     successDiv.textContent = message;
     
-    // Insert after the form
-    const entryForm = document.querySelector('.entry-form');
-    entryForm.parentNode.insertBefore(successDiv, entryForm.nextSibling);
+    document.body.appendChild(successDiv);
     
-    // Remove message after 3 seconds
     setTimeout(() => {
-        if (successDiv.parentNode) {
-            successDiv.remove();
-        }
+        successDiv.remove();
     }, 3000);
 }
 
 /**
- * Utility function to format date for display
- * @param {string} dateString - ISO date string
- * @returns {string} Formatted date string
+ * Formats a date string
  */
 function formatDate(dateString) {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
         year: 'numeric',
-        month: 'short',
+        month: 'long',
         day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        timeZone: 'UTC'
     });
 }
 

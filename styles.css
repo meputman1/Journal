@@ -14,7 +14,7 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 20px;
 }
@@ -40,25 +40,150 @@ header p {
 /* Main content layout */
 main {
     display: grid;
+    grid-template-columns: 1fr 2fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+        "calendar form"
+        "entries entries";
     gap: 30px;
-    grid-template-columns: 1fr 1fr;
 }
 
-/* Form section */
+.calendar-search-section {
+    grid-area: calendar;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
 .entry-form {
+    grid-area: form;
+}
+
+.entries-section {
+    grid-area: entries;
+}
+
+/* Form & Entries Section Styling */
+.entry-form,
+.entries-section,
+.calendar-container,
+.search-filter-container {
     background: white;
     padding: 30px;
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    height: fit-content;
 }
 
-.entry-form h2 {
+.entry-form h2, .entries-section h2, .calendar-container h2, .search-filter-container h2 {
     color: #4a5568;
     margin-bottom: 20px;
     font-size: 1.5rem;
 }
 
+/* Calendar Container */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.calendar-header h3 {
+    font-size: 1.2rem;
+    color: #4a5568;
+}
+
+.calendar-nav-btn {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: #667eea;
+    transition: color 0.3s;
+}
+
+.calendar-nav-btn:hover {
+    color: #764ba2;
+}
+
+/* Calendar Grid */
+.calendar-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.calendar-weekdays,
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+}
+
+.calendar-weekdays > div {
+    font-weight: bold;
+    text-align: center;
+    padding: 10px 0;
+    color: #718096;
+}
+
+.calendar-days {
+    grid-auto-rows: 1fr; /* Make days fill the space */
+}
+
+.calendar-day {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    position: relative;
+    aspect-ratio: 1 / 1; /* Keep the days as squares */
+}
+
+.calendar-day:not(.other-month):hover {
+    background-color: #e9eafc;
+}
+
+.calendar-day.other-month {
+    color: #cbd5e0;
+    cursor: default;
+}
+
+.calendar-day.today {
+    background-color: #667eea;
+    color: white;
+    font-weight: bold;
+}
+
+.calendar-day.selected {
+    background-color: #764ba2;
+    color: white;
+}
+
+.calendar-day.has-entries::after {
+    content: '';
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #f56565;
+}
+
+.calendar-day.today.has-entries::after {
+    background-color: white;
+}
+
+.calendar-day.selected.has-entries::after {
+    background-color: #d1c4e9;
+}
+
+/* Form Group */
 .form-group {
     margin-bottom: 20px;
 }
@@ -96,12 +221,12 @@ main {
 }
 
 .mood-btn {
-    width: 50px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
     border: 2px solid #e2e8f0;
     border-radius: 50%;
     background: white;
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
@@ -111,9 +236,7 @@ main {
 }
 
 .mood-btn:hover {
-    border-color: #667eea;
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
 }
 
 .mood-btn.selected {
@@ -121,7 +244,6 @@ main {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 /* Custom tooltip styling */
@@ -166,6 +288,7 @@ main {
     visibility: visible;
 }
 
+/* Save Button */
 .save-btn {
     width: 100%;
     padding: 15px;
@@ -188,21 +311,7 @@ main {
     transform: translateY(0);
 }
 
-/* Search section */
-.search-section {
-    background: white;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    height: fit-content;
-}
-
-.search-section h2 {
-    color: #4a5568;
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-}
-
+/* Search and Filter */
 .search-controls {
     display: flex;
     flex-direction: column;
@@ -223,7 +332,6 @@ main {
     border-color: #667eea;
 }
 
-/* Mood filter buttons */
 .mood-filter-buttons {
     display: flex;
     gap: 8px;
@@ -240,95 +348,41 @@ main {
     transition: all 0.3s ease;
     min-width: 40px;
     text-align: center;
-    position: relative;
 }
 
 .filter-btn:hover {
-    border-color: #667eea;
-    transform: translateY(-1px);
+    border-color: #a3bffa;
 }
 
 .filter-btn.active {
+    background: #667eea;
+    color: white;
     border-color: #667eea;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    font-weight: bold;
 }
 
-/* Filter button tooltips */
-.filter-btn::before {
-    content: attr(title);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    z-index: 1000;
-    margin-bottom: 8px;
-}
-
-.filter-btn::after {
-    content: '';
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: rgba(0, 0, 0, 0.8);
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    z-index: 1000;
-    margin-bottom: 3px;
-}
-
-.filter-btn:hover::before,
-.filter-btn:hover::after {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* Entries section */
-.entries-section {
-    grid-column: 1 / -1;
-    background: white;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-
-.entries-section h2 {
-    color: #4a5568;
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-}
-
+/* Entries Section */
 .entries-container {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 10px; /* For scrollbar */
 }
 
 .entry-card {
-    background: #f8fafc;
+    background: #f7f9fc;
     border: 1px solid #e2e8f0;
-    border-radius: 12px;
+    border-radius: 10px;
     padding: 20px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.3s;
 }
 
 .entry-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
 }
 
 .entry-header {
@@ -336,8 +390,6 @@ main {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #e2e8f0;
 }
 
 .entry-date {
@@ -347,92 +399,97 @@ main {
 }
 
 .entry-mood {
-    font-size: 1.2rem;
-    padding: 5px 10px;
-    background: #e2e8f0;
-    border-radius: 20px;
-    color: #4a5568;
+    font-size: 1.5rem;
+    background: #e9eafc;
+    padding: 5px;
+    border-radius: 50%;
+    line-height: 1;
 }
 
 .entry-text {
     color: #2d3748;
-    line-height: 1.7;
-    white-space: pre-wrap;
+    white-space: pre-wrap; /* Preserve line breaks */
+    flex-grow: 1;
 }
 
 .no-entries {
     text-align: center;
     padding: 40px;
     color: #718096;
-    font-style: italic;
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
+/* Responsive Design */
+@media (max-width: 1200px) {
     main {
         grid-template-columns: 1fr;
+        grid-template-areas:
+            "calendar"
+            "form"
+            "entries";
     }
-    
-    .mood-buttons {
-        justify-content: center;
-    }
-    
-    .mood-filter-buttons {
-        justify-content: center;
-    }
-    
-    header h1 {
-        font-size: 2rem;
-    }
-    
+}
+
+@media (max-width: 768px) {
     .container {
         padding: 15px;
     }
-    
+    header h1 {
+        font-size: 2rem;
+    }
+    .entry-form, .entries-section, .calendar-container, .search-filter-container {
+        padding: 20px;
+    }
     .mood-btn {
-        width: 45px;
-        height: 45px;
-        font-size: 1.3rem;
-    }
-    
-    /* Adjust tooltip positioning on mobile */
-    .mood-btn::before,
-    .filter-btn::before {
-        font-size: 0.7rem;
-        padding: 4px 8px;
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
     }
 }
 
-/* Animation for new entries */
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.entry-card {
-    animation: slideIn 0.3s ease-out;
-}
-
-/* Loading state */
-.loading {
-    text-align: center;
-    padding: 20px;
-    color: #718096;
-}
-
-/* Success message */
+/* Utility Classes for Messages */
 .success-message {
-    background: #c6f6d5;
-    color: #22543d;
-    padding: 10px 15px;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #48bb78;
+    color: white;
+    padding: 12px 24px;
     border-radius: 8px;
-    margin-bottom: 20px;
-    border: 1px solid #9ae6b4;
-    animation: slideIn 0.3s ease-out;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.5s, transform 0.5s;
+    animation: fadeInOut 3s forwards;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translate(-50%, 20px); }
+    15% { opacity: 1; transform: translate(-50%, 0); }
+    85% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, 20px); }
+}
+
+/* Tooltips for mood buttons (optional, if titles are used) */
+.mood-btn[title]::before, .filter-btn[title]::before {
+    content: attr(title);
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.mood-btn[title]:hover::before, .filter-btn[title]:hover::before {
+    opacity: 1;
+    visibility: visible;
 } 
