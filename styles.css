@@ -34,19 +34,23 @@ header h1 {
 
 header p {
     font-size: 1.1rem;
-    opacity: 0.9;
+    color: #718096;
 }
 
 /* Main content layout */
 main {
     display: grid;
+    grid-template-columns: 400px 1fr;
+    grid-template-areas:
+        "calendar form"
+        "entries entries";
     gap: 30px;
-    grid-template-columns: 1fr 2fr;
+    align-items: start;
 }
 
 /* Form section - Now on the right side */
 .entry-form {
-    grid-column: 2;
+    grid-area: form;
     background: white;
     padding: 30px;
     border-radius: 15px;
@@ -60,8 +64,6 @@ main {
     font-size: 1.5rem;
 }
 
-<<<<<<< Updated upstream
-=======
 /* Calendar Container */
 .calendar-header {
     display: flex;
@@ -90,16 +92,15 @@ main {
 
 /* Calendar Grid */
 .calendar-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.calendar-weekdays,
-.calendar-days {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 5px;
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 10px;
 }
 
 .calendar-weekdays > div {
@@ -109,7 +110,9 @@ main {
 }
 
 .calendar-days {
-    grid-auto-rows: 1fr; /* Make days fill the space */
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
 }
 
 .calendar-day {
@@ -162,7 +165,6 @@ main {
 }
 
 /* Form Group */
->>>>>>> Stashed changes
 .form-group {
     margin-bottom: 20px;
 }
@@ -294,10 +296,10 @@ main {
 
 /* Calendar and Search Section - Now on the left */
 .calendar-search-section {
-    grid-column: 1;
+    grid-area: calendar;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 30px;
 }
 
 /* Calendar Container - Now larger */
@@ -538,6 +540,7 @@ main {
 
 /* Entries section - Now spans full width below the top sections */
 .entries-section {
+    grid-area: entries;
     grid-column: 1 / -1;
     background: white;
     padding: 30px;
