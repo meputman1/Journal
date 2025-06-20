@@ -721,4 +721,16 @@ main {
     margin-bottom: 20px;
     border: 1px solid #9ae6b4;
     animation: slideIn 0.3s ease-out;
+}
+
+.mood-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mood-filter-label {
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 0.9rem;
 } 
