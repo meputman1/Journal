@@ -407,6 +407,7 @@ main {
 .entry-text {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     color: #444;
     line-height: 1.7;
     margin-bottom: 15px;
@@ -417,6 +418,27 @@ main {
 =======
     margin-top: 10px;
     line-height: 1.6;
+=======
+    margin-top: 10px;
+    line-height: 1.6;
+}
+
+.entry-tags {
+    margin-top: 12px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.entry-tag {
+    padding: 4px 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+>>>>>>> Stashed changes
 }
 
 .entry-tags {
@@ -628,6 +650,9 @@ main {
     transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
