@@ -91,9 +91,9 @@
                             <button type="button" class="mood-btn" data-mood="happy" title="Happy">😊</button>
                             <button type="button" class="mood-btn" data-mood="sad" title="Sad">😢</button>
                             <button type="button" class="mood-btn" data-mood="excited" title="Excited">🤩</button>
-                            <button type="button" class="mood-btn" data-mood="calm" title="Calm">😌</button>
                             <button type="button" class="mood-btn" data-mood="anxious" title="Anxious">😰</button>
                             <button type="button" class="mood-btn" data-mood="grateful" title="Grateful">🙏</button>
+<<<<<<< Updated upstream
                             <button type="button" class="mood-btn" data-mood="neutral" title="Neutral">😐</button>
                             <button type="button" class="mood-btn" data-mood="angry" title="Angry">😡</button>
                             <button type="button" class="mood-btn" data-mood="motivated" title="Motivated">😤</button>
@@ -103,6 +103,22 @@
                             <button type="button" class="mood-btn" data-mood="overwhelmed" title="Overwhelmed">🤯</button>
                             <button type="button" class="mood-btn" data-mood="proud" title="Proud">🥳</button>
                             <button type="button" class="mood-btn" data-mood="numb" title="Numb">😶‍🌫️</button>
+=======
+                            <button type="button" class="mood-btn" data-mood="numb" title="Numb">😶‍🌫️</button>
+                            <button type="button" class="mood-btn" data-mood="angry" title="Angry">😡</button>
+                            <button type="button" class="mood-btn" data-mood="motivated" title="Motivated">💪</button>
+                            <button type="button" class="mood-btn" data-mood="loved" title="Loved">🥰</button>
+                            <button type="button" class="mood-btn" data-mood="overwhelmed" title="Overwhelmed">😵‍💫</button>
+                            <button type="button" class="mood-btn" data-mood="lonely" title="Lonely">🥲</button>
+                            <button type="button" class="mood-btn" data-mood="bored" title="Bored">🥱</button>
+                            <button type="button" class="mood-btn" data-mood="sick" title="Sick">🤒</button>
+                            <button type="button" class="mood-btn" data-mood="disappointed" title="Disappointed">😞</button>
+                            <button type="button" class="mood-btn" data-mood="frustrated" title="Frustrated">😤</button>
+                            <button type="button" class="mood-btn" data-mood="content" title="Content">🙂</button>
+                            <button type="button" class="mood-btn" data-mood="focused" title="Focused">🧐</button>
+                            <button type="button" class="mood-btn" data-mood="stressed" title="Stressed">😫</button>
+                            <button type="button" class="mood-btn" data-mood="creative" title="Creative">🎨</button>
+>>>>>>> Stashed changes
                         </div>
                         <input type="hidden" id="selectedMood" value="">
                     </div>
@@ -111,7 +127,76 @@
                 </form>
             </section>
 
+<<<<<<< Updated upstream
             <!-- Journal Entries Display (Bottom) -->
+=======
+            <!-- Calendar and Search Section -->
+            <section class="calendar-search-section">
+                <!-- Calendar View -->
+                <div class="calendar-container">
+                    <h2>📅 Calendar View</h2>
+                    <div class="calendar-header">
+                        <button id="prevMonth" class="calendar-nav-btn">‹</button>
+                        <h3 id="currentMonth">January 2024</h3>
+                        <button id="nextMonth" class="calendar-nav-btn">›</button>
+                    </div>
+                    <div class="calendar-grid">
+                        <div class="calendar-weekdays">
+                            <div>Su</div>
+                            <div>Mo</div>
+                            <div>Tu</div>
+                            <div>We</div>
+                            <div>Th</div>
+                            <div>Fr</div>
+                            <div>Sa</div>
+                        </div>
+                        <div id="calendarDays" class="calendar-days">
+                            <!-- Calendar days will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search and Filter Controls -->
+                <div class="search-filter-container">
+                    <h2>🔍 Search & Filter</h2>
+                    <div class="search-controls">
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            placeholder="Search keywords or moods..."
+                            class="search-input"
+                        >
+                        <div class="mood-filter-group">
+                            <label class="mood-filter-label">Filter by mood:</label>
+                            <div class="mood-filter-buttons">
+                                <button type="button" class="filter-btn active" data-mood="" title="All Entries">All</button>
+                                <button type="button" class="filter-btn" data-mood="happy" title="Happy">😊</button>
+                                <button type="button" class="filter-btn" data-mood="sad" title="Sad">😢</button>
+                                <button type="button" class="filter-btn" data-mood="excited" title="Excited">🤩</button>
+                                <button type="button" class="filter-btn" data-mood="anxious" title="Anxious">😰</button>
+                                <button type="button" class="filter-btn" data-mood="grateful" title="Grateful">🙏</button>
+                                <button type="button" class="filter-btn" data-mood="numb" title="Numb">😶‍🌫️</button>
+                                <button type="button" class="filter-btn" data-mood="angry" title="Angry">😡</button>
+                                <button type="button" class="filter-btn" data-mood="motivated" title="Motivated">💪</button>
+                                <button type="button" class="filter-btn" data-mood="loved" title="Loved">🥰</button>
+                                <button type="button" class="filter-btn" data-mood="overwhelmed" title="Overwhelmed">😵‍💫</button>
+                                <button type="button" class="filter-btn" data-mood="lonely" title="Lonely">🥲</button>
+                                <button type="button" class="filter-btn" data-mood="bored" title="Bored">🥱</button>
+                                <button type="button" class="filter-btn" data-mood="sick" title="Sick">🤒</button>
+                                <button type="button" class="filter-btn" data-mood="disappointed" title="Disappointed">😞</button>
+                                <button type="button" class="filter-btn" data-mood="frustrated" title="Frustrated">😤</button>
+                                <button type="button" class="filter-btn" data-mood="content" title="Content">🙂</button>
+                                <button type="button" class="filter-btn" data-mood="focused" title="Focused">🧐</button>
+                                <button type="button" class="filter-btn" data-mood="stressed" title="Stressed">😫</button>
+                                <button type="button" class="filter-btn" data-mood="creative" title="Creative">🎨</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Journal Entries Display -->
+>>>>>>> Stashed changes
             <section class="entries-section">
                 <h2>📝 Your Entries</h2>
                 <div id="entriesContainer" class="entries-container">
