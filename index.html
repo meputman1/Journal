@@ -14,7 +14,89 @@
         </header>
 
         <main>
+<<<<<<< Updated upstream
             <!-- Journal Entry Form -->
+=======
+            <!-- Calendar and Search Section (Left Side) -->
+            <section class="calendar-search-section">
+                <!-- Calendar View -->
+                <div class="calendar-container">
+                    <h2>📅 Calendar View</h2>
+                    <div class="calendar-header">
+                        <button id="prevMonth" class="calendar-nav-btn">‹</button>
+                        <h3 id="currentMonth">January 2024</h3>
+                        <button id="nextMonth" class="calendar-nav-btn">›</button>
+                    </div>
+                    <div class="calendar-grid">
+                        <div class="calendar-weekdays">
+                            <div>Sun</div>
+                            <div>Mon</div>
+                            <div>Tue</div>
+                            <div>Wed</div>
+                            <div>Thu</div>
+                            <div>Fri</div>
+                            <div>Sat</div>
+                        </div>
+                        <div id="calendarDays" class="calendar-days">
+                            <!-- Calendar days will be generated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search and Filter Controls -->
+                <div class="search-filter-container">
+                    <h2>🔍 Search & Filter</h2>
+                    <div class="search-controls">
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            placeholder="Search entries..."
+                            class="search-input"
+                        >
+                        <div class="mood-filter-buttons">
+                            <button type="button" class="filter-btn active" data-mood="" title="All Entries">All</button>
+                            <button type="button" class="filter-btn" data-mood="happy" title="Happy">😊</button>
+                            <button type="button" class="filter-btn" data-mood="sad" title="Sad">😢</button>
+                            <button type="button" class="filter-btn" data-mood="excited" title="Excited">🤩</button>
+                            <button type="button" class="filter-btn" data-mood="anxious" title="Anxious">😰</button>
+                            <button type="button" class="filter-btn" data-mood="grateful" title="Grateful">🙏</button>
+                            <button type="button" class="filter-btn" data-mood="numb" title="Numb">😶‍🌫️</button>
+                            <button type="button" class="filter-btn" data-mood="angry" title="Angry">😡</button>
+                            <button type="button" class="filter-btn" data-mood="motivated" title="Motivated">💪</button>
+                            <button type="button" class="filter-btn" data-mood="loved" title="Loved">🥰</button>
+                            <button type="button" class="filter-btn" data-mood="overwhelmed" title="Overwhelmed">😵‍💫</button>
+                            <button type="button" class="filter-btn" data-mood="lonely" title="Lonely">🥲</button>
+                            <button type="button" class="filter-btn" data-mood="bored" title="Bored">🥱</button>
+                            <button type="button" class="filter-btn" data-mood="sick" title="Sick">🤒</button>
+                            <button type="button" class="filter-btn" data-mood="disappointed" title="Disappointed">😞</button>
+                            <button type="button" class="filter-btn" data-mood="frustrated" title="Frustrated">😤</button>
+                            <button type="button" class="filter-btn" data-mood="content" title="Content">🙂</button>
+                            <button type="button" class="filter-btn" data-mood="focused" title="Focused">🧐</button>
+                            <button type="button" class="filter-btn" data-mood="stressed" title="Stressed">😫</button>
+                            <button type="button" class="filter-btn" data-mood="creative" title="Creative">🎨</button>
+                        </div>
+                        
+                        <div class="tag-filter-section">
+                            <h3>Filter by topic:</h3>
+                            <div class="tag-filter-buttons">
+                                <button type="button" class="tag-filter-btn" data-tag="work" title="Work">💼 Work</button>
+                                <button type="button" class="tag-filter-btn" data-tag="relationship" title="Relationship">💕 Relationship</button>
+                                <button type="button" class="tag-filter-btn" data-tag="friendship" title="Friendship">👥 Friendship</button>
+                                <button type="button" class="tag-filter-btn" data-tag="family" title="Family">👨‍👩‍👧‍👦 Family</button>
+                                <button type="button" class="tag-filter-btn" data-tag="health" title="Health">🏥 Health</button>
+                                <button type="button" class="tag-filter-btn" data-tag="dreams" title="Dreams">💭 Dreams</button>
+                                <button type="button" class="tag-filter-btn" data-tag="finances" title="Finances">💰 Finances</button>
+                                <button type="button" class="tag-filter-btn" data-tag="creativity" title="Creativity">🎨 Creativity</button>
+                                <button type="button" class="tag-filter-btn" data-tag="travel" title="Travel">✈️ Travel</button>
+                                <button type="button" class="tag-filter-btn" data-tag="therapy" title="Therapy">🧠 Therapy</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Journal Entry Form (Right Side) -->
+>>>>>>> Stashed changes
             <section class="entry-form">
                 <h2>New Entry</h2>
                 <form id="journalForm">
@@ -39,6 +121,23 @@
                             <button type="button" class="mood-btn" data-mood="neutral" title="Neutral">😐</button>
                         </div>
                         <input type="hidden" id="selectedMood" value="">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tag your entry (optional):</label>
+                        <div class="tag-buttons">
+                            <button type="button" class="tag-btn" data-tag="work" title="Work">💼 Work</button>
+                            <button type="button" class="tag-btn" data-tag="relationship" title="Relationship">💕 Relationship</button>
+                            <button type="button" class="tag-btn" data-tag="friendship" title="Friendship">👥 Friendship</button>
+                            <button type="button" class="tag-btn" data-tag="family" title="Family">👨‍👩‍👧‍👦 Family</button>
+                            <button type="button" class="tag-btn" data-tag="health" title="Health">🏥 Health</button>
+                            <button type="button" class="tag-btn" data-tag="dreams" title="Dreams">💭 Dreams</button>
+                            <button type="button" class="tag-btn" data-tag="finances" title="Finances">💰 Finances</button>
+                            <button type="button" class="tag-btn" data-tag="creativity" title="Creativity">🎨 Creativity</button>
+                            <button type="button" class="tag-btn" data-tag="travel" title="Travel">✈️ Travel</button>
+                            <button type="button" class="tag-btn" data-tag="therapy" title="Therapy">🧠 Therapy</button>
+                        </div>
+                        <input type="hidden" id="selectedTags" value="">
                     </div>
 
                     <button type="submit" class="save-btn">💾 Save Entry</button>

@@ -405,10 +405,32 @@ main {
 }
 
 .entry-text {
+<<<<<<< Updated upstream
     color: #444;
     line-height: 1.7;
     margin-bottom: 15px;
     white-space: pre-wrap;
+=======
+    margin-top: 10px;
+    line-height: 1.6;
+}
+
+.entry-tags {
+    margin-top: 12px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.entry-tag {
+    padding: 4px 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+>>>>>>> Stashed changes
 }
 
 /* ========================================
@@ -437,4 +459,151 @@ main {
     .entries-section {
         padding: 20px;
     }
+<<<<<<< Updated upstream
+=======
+    .mood-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+    .tag-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    .tag-filter-btn {
+        padding: 5px 8px;
+        font-size: 0.75rem;
+    }
+}
+
+/* Utility Classes for Messages */
+.success-message {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #48bb78;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.5s, transform 0.5s;
+    animation: fadeInOut 3s forwards;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translate(-50%, 20px); }
+    15% { opacity: 1; transform: translate(-50%, 0); }
+    85% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, 20px); }
+}
+
+/* Tooltips for mood buttons (optional, if titles are used) */
+.mood-btn[title]::before, .filter-btn[title]::before {
+    content: attr(title);
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.mood-btn[title]:hover::before, .filter-btn[title]:hover::before {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Tag buttons styling */
+.tag-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.tag-btn {
+    padding: 8px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 20px;
+    background: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    white-space: nowrap;
+}
+
+.tag-btn:hover {
+    transform: scale(1.05);
+    border-color: #667eea;
+}
+
+.tag-btn.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Tag filter section styling */
+.tag-filter-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.tag-filter-section h3 {
+    color: #4a5568;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.tag-filter-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tag-filter-btn {
+    padding: 6px 10px;
+    border: 2px solid #e2e8f0;
+    border-radius: 15px;
+    background: white;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.tag-filter-btn:hover {
+    transform: scale(1.05);
+    border-color: #667eea;
+}
+
+.tag-filter-btn.active {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+>>>>>>> Stashed changes
 } 
