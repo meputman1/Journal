@@ -6,6 +6,7 @@ const STORAGE_KEY = 'journalEntries';
 let selectedMood = '';
 let currentDate = new Date();
 let selectedCalendarDate = null;
+let calendarDayElements = [];
 
 // DOM elements
 const journalForm = document.getElementById('journalForm');
@@ -20,8 +21,11 @@ const filterButtons = document.querySelectorAll('.filter-btn');
 // Calendar elements
 const prevMonthBtn = document.getElementById('prevMonth');
 const nextMonthBtn = document.getElementById('nextMonth');
-const currentMonthDisplay = document.getElementById('currentMonth');
 const calendarDaysContainer = document.getElementById('calendarDays');
+
+// Add these at the top with other DOM elements
+const monthSelect = document.getElementById('monthSelect');
+const yearSelect = document.getElementById('yearSelect');
 
 // Initialize the app when the page loads
 document.addEventListener('DOMContentLoaded', function() {
@@ -29,6 +33,8 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     renderCalendar();
     displayEntries();
+    populateMonthYearSelectors();
+    syncMonthYearSelectors();
 });
 
 /**
@@ -151,60 +157,139 @@ function loadEntries() {
     }
 }
 
-/**
- * Renders the calendar
- */
+function showCalendarLoading() {
+    const loading = document.getElementById('calendarLoading');
+    if (loading) loading.classList.add('active');
+}
+function hideCalendarLoading() {
+    const loading = document.getElementById('calendarLoading');
+    if (loading) loading.classList.remove('active');
+}
+
+function animateCalendarGrid() {
+    const grid = document.getElementById('calendarDays');
+    if (grid) {
+        grid.classList.remove('fade-in');
+        void grid.offsetWidth; // force reflow
+        grid.classList.add('fade-in');
+    }
+}
+
+// Keyboard navigation helpers
+function focusCalendarDay(index) {
+    if (calendarDayElements[index]) {
+        calendarDayElements[index].focus();
+    }
+}
+
+function getDayIndexByDateString(dateString) {
+    return calendarDayElements.findIndex(el => el.dataset.datestring === dateString);
+}
+
+// Update renderCalendar to support ARIA, keyboard, selection, animation, loading
 function renderCalendar() {
-    if (!calendarDaysContainer) {
-        console.error("Calendar container not found!");
-        return;
-    }
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    
-    currentMonthDisplay.textContent = `${currentDate.toLocaleString('default', { month: 'long' })} ${year}`;
-    
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay(); // 0=Sun, 1=Mon, ...
-    
-    calendarDaysContainer.innerHTML = '';
-    let cells = 0;
-    // Insert blank divs before the 1st
-    for (let i = 0; i < startingDayOfWeek; i++) {
-        const emptyDay = document.createElement('div');
-        emptyDay.className = 'calendar-day other-month';
-        calendarDaysContainer.appendChild(emptyDay);
-        cells++;
-    }
-    // Render days 1–N
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dayElement = document.createElement('div');
-        dayElement.className = 'calendar-day';
-        dayElement.textContent = day;
-        const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        if (journalEntries.some(entry => entry.dateString === dateString)) {
-            dayElement.classList.add('has-entries');
+    syncMonthYearSelectors();
+    showCalendarLoading();
+    setTimeout(() => {
+        if (!calendarDaysContainer) {
+            console.error("Calendar container not found!");
+            hideCalendarLoading();
+            return;
         }
-        const today = new Date();
-        if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
-            dayElement.classList.add('today');
+        calendarDaysContainer.innerHTML = '';
+        calendarDayElements = [];
+        calendarDaysContainer.setAttribute('role', 'grid');
+        calendarDaysContainer.setAttribute('aria-label', 'Calendar days');
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const daysInMonth = lastDay.getDate();
+        const startingDayOfWeek = firstDay.getDay();
+        let cells = 0;
+        // Insert blank divs before the 1st
+        for (let i = 0; i < startingDayOfWeek; i++) {
+            const emptyDay = document.createElement('div');
+            emptyDay.className = 'calendar-day other-month';
+            emptyDay.setAttribute('role', 'gridcell');
+            emptyDay.setAttribute('tabindex', '-1');
+            calendarDaysContainer.appendChild(emptyDay);
+            calendarDayElements.push(emptyDay);
+            cells++;
         }
-        if (selectedCalendarDate === dateString) {
-            dayElement.classList.add('selected');
+        // Render days 1–N
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'calendar-day';
+            dayElement.textContent = day;
+            dayElement.setAttribute('role', 'gridcell');
+            dayElement.setAttribute('tabindex', '-1');
+            const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            dayElement.dataset.datestring = dateString;
+            if (journalEntries.some(entry => entry.dateString === dateString)) {
+                dayElement.classList.add('has-entries');
+            }
+            const today = new Date();
+            if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+                dayElement.classList.add('today');
+            }
+            if (selectedCalendarDate === dateString) {
+                dayElement.classList.add('selected');
+                dayElement.setAttribute('aria-selected', 'true');
+            } else {
+                dayElement.setAttribute('aria-selected', 'false');
+            }
+            dayElement.addEventListener('click', () => {
+                selectCalendarDate(dateString);
+            });
+            dayElement.addEventListener('keydown', (e) => {
+                const idx = calendarDayElements.indexOf(dayElement);
+                if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    focusCalendarDay((idx + 1) % 35);
+                } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    focusCalendarDay((idx + 34) % 35);
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    focusCalendarDay((idx + 7) % 35);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    focusCalendarDay((idx + 28) % 35);
+                } else if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectCalendarDate(dateString);
+                }
+            });
+            calendarDaysContainer.appendChild(dayElement);
+            calendarDayElements.push(dayElement);
+            cells++;
         }
-        dayElement.addEventListener('click', () => selectCalendarDate(dateString));
-        calendarDaysContainer.appendChild(dayElement);
-        cells++;
-    }
-    // Fill the rest of the 35 cells with blank divs
-    while (cells < 35) {
-        const emptyDay = document.createElement('div');
-        emptyDay.className = 'calendar-day other-month';
-        calendarDaysContainer.appendChild(emptyDay);
-        cells++;
-    }
+        // Fill the rest of the 35 cells with blank divs
+        while (cells < 35) {
+            const emptyDay = document.createElement('div');
+            emptyDay.className = 'calendar-day other-month';
+            emptyDay.setAttribute('role', 'gridcell');
+            emptyDay.setAttribute('tabindex', '-1');
+            calendarDaysContainer.appendChild(emptyDay);
+            calendarDayElements.push(emptyDay);
+            cells++;
+        }
+        animateCalendarGrid();
+        hideCalendarLoading();
+        // Focus the selected day or today by default
+        let focusIdx = getDayIndexByDateString(selectedCalendarDate);
+        if (focusIdx === -1) {
+            // If no selected, focus today if in this month
+            const today = new Date();
+            if (year === today.getFullYear() && month === today.getMonth()) {
+                focusIdx = getDayIndexByDateString(`${year}-${String(month + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`);
+            }
+        }
+        if (focusIdx !== -1) {
+            setTimeout(() => focusCalendarDay(focusIdx), 10);
+        }
+    }, 300);
 }
 
 /**
@@ -369,4 +454,103 @@ if (typeof module !== 'undefined' && module.exports) {
         getMoodInfo,
         formatDate
     };
+}
+
+// Populate month and year dropdowns
+function populateMonthYearSelectors() {
+    // Months
+    const monthNames = Array.from({length: 12}, (_, i) => new Date(0, i).toLocaleString('default', { month: 'long' }));
+    monthSelect.innerHTML = '';
+    monthNames.forEach((name, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = name;
+        monthSelect.appendChild(opt);
+    });
+    // Years (choose a reasonable range)
+    const currentYear = new Date().getFullYear();
+    const startYear = currentYear - 50;
+    const endYear = currentYear + 20;
+    yearSelect.innerHTML = '';
+    for (let y = startYear; y <= endYear; y++) {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y;
+        yearSelect.appendChild(opt);
+    }
+}
+
+// Sync dropdowns with currentDate
+function syncMonthYearSelectors() {
+    monthSelect.value = currentDate.getMonth();
+    yearSelect.value = currentDate.getFullYear();
+}
+
+// Update calendar when dropdowns change
+monthSelect.addEventListener('change', function() {
+    currentDate.setMonth(parseInt(monthSelect.value));
+    renderCalendar();
+});
+yearSelect.addEventListener('change', function() {
+    currentDate.setFullYear(parseInt(yearSelect.value));
+    renderCalendar();
+});
+
+// Update dropdowns when navigating months
+function navigateMonth(direction) {
+    currentDate.setMonth(currentDate.getMonth() + direction);
+    renderCalendar();
+}
+
+// Update renderCalendar to sync selectors
+function renderCalendar() {
+    if (!calendarDaysContainer) {
+        console.error("Calendar container not found!");
+        return;
+    }
+    syncMonthYearSelectors();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay(); // 0=Sun, 1=Mon, ...
+    
+    calendarDaysContainer.innerHTML = '';
+    let cells = 0;
+    // Insert blank divs before the 1st
+    for (let i = 0; i < startingDayOfWeek; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'calendar-day other-month';
+        calendarDaysContainer.appendChild(emptyDay);
+        cells++;
+    }
+    // Render days 1–N
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day';
+        dayElement.textContent = day;
+        const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        if (journalEntries.some(entry => entry.dateString === dateString)) {
+            dayElement.classList.add('has-entries');
+        }
+        const today = new Date();
+        if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+            dayElement.classList.add('today');
+        }
+        if (selectedCalendarDate === dateString) {
+            dayElement.classList.add('selected');
+        }
+        dayElement.addEventListener('click', () => selectCalendarDate(dateString));
+        calendarDaysContainer.appendChild(dayElement);
+        cells++;
+    }
+    // Fill the rest of the 35 cells with blank divs
+    while (cells < 35) {
+        const emptyDay = document.createElement('div');
+        emptyDay.className = 'calendar-day other-month';
+        calendarDaysContainer.appendChild(emptyDay);
+        cells++;
+    }
 } 
