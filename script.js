@@ -37,6 +37,16 @@ const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
 // Encryption for journal entries - key derived from user password
 let userEncryptionKey = null;
 
+// DOM elements for password management
+const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+const changePasswordLink = document.getElementById('changePasswordLink');
+const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+const changePasswordModal = document.getElementById('changePasswordModal');
+const closeForgotPasswordModal = document.getElementById('closeForgotPasswordModal');
+const closeChangePasswordModal = document.getElementById('closeChangePasswordModal');
+const resetPasswordForm = document.getElementById('resetPasswordForm');
+const changePasswordForm = document.getElementById('changePasswordForm');
+
 // Improved password validation
 function isValidPassword(password) {
     // At least 8 characters, with at least one uppercase, one lowercase, one number
@@ -575,6 +585,9 @@ function setupEventListeners() {
 
     // Setup trends event listeners
     setupTrendsEventListeners();
+
+    // Setup password management event listeners
+    setupPasswordManagementEventListeners();
 }
 
 /**
@@ -2068,5 +2081,201 @@ function decryptText(encryptedText) {
     } catch (error) {
         console.error('Decryption error:', error);
         return encryptedText; // Fallback to encrypted text
+    }
+}
+
+/**
+ * Setup password management event listeners
+ */
+function setupPasswordManagementEventListeners() {
+    // Forgot password
+    forgotPasswordLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        showForgotPasswordModal();
+    });
+    
+    closeForgotPasswordModal.addEventListener('click', hideForgotPasswordModal);
+    resetPasswordForm.addEventListener('submit', handleResetPassword);
+    
+    // Change password
+    changePasswordLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        showChangePasswordModal();
+    });
+    
+    closeChangePasswordModal.addEventListener('click', hideChangePasswordModal);
+    changePasswordForm.addEventListener('submit', handleChangePassword);
+    
+    // Close modals when clicking outside
+    forgotPasswordModal.addEventListener('click', (e) => {
+        if (e.target === forgotPasswordModal) {
+            hideForgotPasswordModal();
+        }
+    });
+    
+    changePasswordModal.addEventListener('click', (e) => {
+        if (e.target === changePasswordModal) {
+            hideChangePasswordModal();
+        }
+    });
+}
+
+/**
+ * Show forgot password modal
+ */
+function showForgotPasswordModal() {
+    forgotPasswordModal.style.display = 'flex';
+    document.getElementById('resetPasswordError').textContent = '';
+    resetPasswordForm.reset();
+}
+
+/**
+ * Hide forgot password modal
+ */
+function hideForgotPasswordModal() {
+    forgotPasswordModal.style.display = 'none';
+}
+
+/**
+ * Show change password modal
+ */
+function showChangePasswordModal() {
+    changePasswordModal.style.display = 'flex';
+    document.getElementById('changePasswordError').textContent = '';
+    changePasswordForm.reset();
+}
+
+/**
+ * Hide change password modal
+ */
+function hideChangePasswordModal() {
+    changePasswordModal.style.display = 'none';
+}
+
+/**
+ * Handle reset password form submission
+ */
+async function handleResetPassword(event) {
+    event.preventDefault();
+    
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+    const errorElement = document.getElementById('resetPasswordError');
+    
+    // Clear previous errors
+    errorElement.textContent = '';
+    
+    // Validation
+    if (!currentPassword) {
+        errorElement.textContent = 'Please enter your current password.';
+        return;
+    }
+    
+    if (!isValidPassword(newPassword)) {
+        errorElement.textContent = 'New password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number.';
+        return;
+    }
+    
+    if (newPassword !== confirmNewPassword) {
+        errorElement.textContent = 'New passwords do not match.';
+        return;
+    }
+    
+    try {
+        // Verify current password
+        const hashedCurrentPassword = await hashPassword(currentPassword);
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const user = users.find(u => u.password === hashedCurrentPassword);
+        
+        if (!user) {
+            errorElement.textContent = 'Current password is incorrect.';
+            return;
+        }
+        
+        // Hash new password
+        const hashedNewPassword = await hashPassword(newPassword);
+        
+        // Update user password
+        user.password = hashedNewPassword;
+        localStorage.setItem('users', JSON.stringify(users));
+        
+        // Update current user if logged in
+        if (currentUser && currentUser.id === user.id) {
+            currentUser = { id: user.id, email: user.email };
+            // Update encryption key with new password
+            await setUserEncryptionKey(newPassword);
+        }
+        
+        hideForgotPasswordModal();
+        showSuccessMessage('Password reset successfully!');
+        
+    } catch (error) {
+        console.error('Error resetting password:', error);
+        errorElement.textContent = 'An error occurred while resetting your password. Please try again.';
+    }
+}
+
+/**
+ * Handle change password form submission
+ */
+async function handleChangePassword(event) {
+    event.preventDefault();
+    
+    const currentPassword = document.getElementById('changeCurrentPassword').value;
+    const newPassword = document.getElementById('changeNewPassword').value;
+    const confirmNewPassword = document.getElementById('changeConfirmPassword').value;
+    const errorElement = document.getElementById('changePasswordError');
+    
+    // Clear previous errors
+    errorElement.textContent = '';
+    
+    // Validation
+    if (!currentPassword) {
+        errorElement.textContent = 'Please enter your current password.';
+        return;
+    }
+    
+    if (!isValidPassword(newPassword)) {
+        errorElement.textContent = 'New password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number.';
+        return;
+    }
+    
+    if (newPassword !== confirmNewPassword) {
+        errorElement.textContent = 'New passwords do not match.';
+        return;
+    }
+    
+    try {
+        // Verify current password
+        const hashedCurrentPassword = await hashPassword(currentPassword);
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const user = users.find(u => u.password === hashedCurrentPassword);
+        
+        if (!user) {
+            errorElement.textContent = 'Current password is incorrect.';
+            return;
+        }
+        
+        // Hash new password
+        const hashedNewPassword = await hashPassword(newPassword);
+        
+        // Update user password
+        user.password = hashedNewPassword;
+        localStorage.setItem('users', JSON.stringify(users));
+        
+        // Update current user if logged in
+        if (currentUser && currentUser.id === user.id) {
+            currentUser = { id: user.id, email: user.email };
+            // Update encryption key with new password
+            await setUserEncryptionKey(newPassword);
+        }
+        
+        hideChangePasswordModal();
+        showSuccessMessage('Password changed successfully!');
+        
+    } catch (error) {
+        console.error('Error changing password:', error);
+        errorElement.textContent = 'An error occurred while changing your password. Please try again.';
     }
 } 

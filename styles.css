@@ -1371,4 +1371,90 @@ main {
     line-height: 1.5;
 }
 
-/* Responsive design */ 
+/* Auth links */
+.auth-links {
+    display: flex;
+    justify-content: space-between;
+    margin: 15px 0;
+    gap: 10px;
+}
+
+.auth-link {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.auth-link:hover {
+    color: #5a67d8;
+    text-decoration: underline;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 20px;
+}
+
+.modal-container {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    max-width: 450px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px 0;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    color: #4a5568;
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #718096;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.modal-close:hover {
+    background-color: #e2e8f0;
+}
+
+.modal-body {
+    padding: 0 30px 30px;
+}
+
+.modal-body p {
+    color: #718096;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+/* Charts unavailable message */ 

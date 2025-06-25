@@ -31,10 +31,92 @@
                 </div>
                 <div id="loginError" class="auth-error"></div>
                 <button type="submit" class="auth-btn">Log In</button>
+                <div class="auth-links">
+                    <a href="#" id="forgotPasswordLink" class="auth-link">Forgot Password?</a>
+                    <a href="#" id="changePasswordLink" class="auth-link">Change Password</a>
+                </div>
                 <div class="security-notice">
                     <p><strong>Security Notice:</strong> This is a personal journal app. Data is stored locally in your browser. For production use, consider a secure backend with proper encryption.</p>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="modal-overlay" style="display: none;">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Reset Password</h2>
+                <button type="button" class="modal-close" id="closeForgotPasswordModal">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Since this is a single-user app, you can reset your password by entering your current password and choosing a new one.</p>
+                <form id="resetPasswordForm">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <div class="password-input">
+                            <input type="password" id="currentPassword" required>
+                            <button type="button" class="password-toggle" data-target="currentPassword">👁️</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <div class="password-input">
+                            <input type="password" id="newPassword" required minlength="8">
+                            <button type="button" class="password-toggle" data-target="newPassword">👁️</button>
+                        </div>
+                        <small class="password-hint">Password must be at least 8 characters with uppercase, lowercase, and number</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmNewPassword">Confirm New Password</label>
+                        <div class="password-input">
+                            <input type="password" id="confirmNewPassword" required minlength="8">
+                            <button type="button" class="password-toggle" data-target="confirmNewPassword">👁️</button>
+                        </div>
+                    </div>
+                    <div id="resetPasswordError" class="auth-error"></div>
+                    <button type="submit" class="auth-btn">Reset Password</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="modal-overlay" style="display: none;">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Change Password</h2>
+                <button type="button" class="modal-close" id="closeChangePasswordModal">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Enter your current password and choose a new one.</p>
+                <form id="changePasswordForm">
+                    <div class="form-group">
+                        <label for="changeCurrentPassword">Current Password</label>
+                        <div class="password-input">
+                            <input type="password" id="changeCurrentPassword" required>
+                            <button type="button" class="password-toggle" data-target="changeCurrentPassword">👁️</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="changeNewPassword">New Password</label>
+                        <div class="password-input">
+                            <input type="password" id="changeNewPassword" required minlength="8">
+                            <button type="button" class="password-toggle" data-target="changeNewPassword">👁️</button>
+                        </div>
+                        <small class="password-hint">Password must be at least 8 characters with uppercase, lowercase, and number</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="changeConfirmPassword">Confirm New Password</label>
+                        <div class="password-input">
+                            <input type="password" id="changeConfirmPassword" required minlength="8">
+                            <button type="button" class="password-toggle" data-target="changeConfirmPassword">👁️</button>
+                        </div>
+                    </div>
+                    <div id="changePasswordError" class="auth-error"></div>
+                    <button type="submit" class="auth-btn">Change Password</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -278,6 +360,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=1.7"></script>
+    <script src="script.js?v=1.8"></script>
 </body>
 </html> 
