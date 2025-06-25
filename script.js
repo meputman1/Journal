@@ -21,7 +21,6 @@ const logoutBtn = document.getElementById('logoutBtn');
 
 // Global variables
 let journalEntries = [];
-const STORAGE_KEY = 'journalEntries';
 let selectedMood = '';
 let selectedTags = [];
 let currentDate = new Date();
@@ -127,16 +126,20 @@ function checkAuthState() {
     }
     
     const savedUser = localStorage.getItem('currentUser');
+    console.log('checkAuthState: savedUser from localStorage:', savedUser);
+    
     if (savedUser) {
         try {
             currentUser = JSON.parse(savedUser);
             isAuthenticated = true;
+            console.log('checkAuthState: User loaded from localStorage:', currentUser);
             showMainApp();
         } catch (error) {
             console.error('Error parsing saved user:', error);
             logout();
         }
     } else {
+        console.log('checkAuthState: No saved user found, showing auth overlay');
         showAuthOverlay();
     }
 }
@@ -177,12 +180,20 @@ function showMainApp() {
     
     if (currentUser) {
         userEmail.textContent = currentUser.email;
+        console.log('Current user:', currentUser.email);
     }
     
     // Initialize app features
+    console.log('Loading entries...');
     loadEntries();
+    console.log('Entries loaded, count:', journalEntries.length);
+    
+    console.log('Rendering calendar...');
     renderCalendar();
+    
+    console.log('Displaying entries...');
     displayEntries();
+    
     populateMonthYearSelectors();
     syncMonthYearSelectors();
     updatePrivacyModeUI();
@@ -297,6 +308,7 @@ function handleSignUp(event) {
     
     // Log in the new user
     currentUser = { id: newUser.id, email: newUser.email };
+    console.log('New user created and logged in:', currentUser);
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
     isAuthenticated = true;
     
@@ -336,6 +348,7 @@ function handleLogin(event) {
     
     // Log in user
     currentUser = { id: user.id, email: user.email };
+    console.log('User logged in:', currentUser);
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
     isAuthenticated = true;
     
@@ -581,7 +594,7 @@ function handleFormSubmit(event) {
  */
 function saveEntries() {
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(journalEntries));
+        localStorage.setItem(getStorageKey(), JSON.stringify(journalEntries));
     } catch (error) {
         console.error('Error saving entries to localStorage:', error);
     }
@@ -592,7 +605,11 @@ function saveEntries() {
  */
 function loadEntries() {
     try {
-        const savedEntries = localStorage.getItem(STORAGE_KEY);
+        const storageKey = getStorageKey();
+        console.log('Loading entries with storage key:', storageKey);
+        const savedEntries = localStorage.getItem(storageKey);
+        console.log('Saved entries found:', savedEntries ? 'yes' : 'no');
+        
         if (savedEntries) {
             journalEntries = JSON.parse(savedEntries).map(entry => {
                 if (!entry.dateString) {
@@ -604,6 +621,10 @@ function loadEntries() {
                 }
                 return entry;
             });
+            console.log('Loaded entries count:', journalEntries.length);
+        } else {
+            journalEntries = [];
+            console.log('No saved entries found, initialized empty array');
         }
     } catch (error) {
         console.error('Error loading entries from localStorage:', error);
@@ -770,20 +791,35 @@ function selectCalendarDate(dateString) {
  */
 function displayEntries(entriesToShow) {
     const entries = entriesToShow || journalEntries;
-    if(!entriesContainer) return;
+    console.log('displayEntries called with:', entries.length, 'entries');
+    console.log('entriesToShow:', entriesToShow ? entriesToShow.length : 'null');
+    console.log('journalEntries:', journalEntries.length);
+    
+    if(!entriesContainer) {
+        console.error('entriesContainer not found');
+        return;
+    }
+    
+    if(!noEntries) {
+        console.error('noEntries element not found');
+        return;
+    }
+    
     entriesContainer.innerHTML = '';
 
     if (entries.length === 0) {
-        if(noEntries) noEntries.style.display = 'block';
+        console.log('No entries to display, showing no entries message');
+        noEntries.style.display = 'block';
         let message = 'No journal entries yet. Start writing!';
         if (selectedCalendarDate) {
             message = `No entries for ${formatDate(selectedCalendarDate)}.`;
         } else if (searchInput.value || document.querySelector('.filter-btn.active:not([data-mood=""])')) {
             message = 'No entries match your search or filter.';
         }
-        if(noEntries) noEntries.querySelector('p').textContent = message;
+        noEntries.querySelector('p').textContent = message;
     } else {
-        if(noEntries) noEntries.style.display = 'none';
+        console.log('Displaying', entries.length, 'entries');
+        noEntries.style.display = 'none';
         entries.forEach(entry => {
             const entryCard = createEntryCard(entry);
             entriesContainer.appendChild(entryCard);
@@ -1791,4 +1827,12 @@ function updateCharts() {
         tagFrequencyChart.update();
         updateTagChartLegend(tagData);
     }
+}
+
+// Function to get user-specific storage key
+function getStorageKey() {
+    const key = currentUser ? `journalEntries_${currentUser.id}` : 'journalEntries';
+    console.log('getStorageKey called, currentUser:', currentUser ? currentUser.email : 'null');
+    console.log('Storage key:', key);
+    return key;
 } 
