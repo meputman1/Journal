@@ -1352,4 +1352,23 @@ main {
         gap: 10px;
         font-size: 0.8rem;
     }
-} 
+}
+
+/* Charts unavailable message */
+.charts-unavailable {
+    background: linear-gradient(135deg, #fef5e7 0%, #fed7aa 100%);
+    border: 1px solid #f6ad55;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.charts-unavailable p {
+    margin: 0;
+    color: #744210;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+/* Responsive design */ 

@@ -26,7 +26,7 @@
                     <label for="signUpPassword">Password</label>
                     <div class="password-input">
                         <input type="password" id="signUpPassword" required minlength="8">
-                        <button type="button" class="password-toggle" onclick="togglePassword('signUpPassword')">👁️</button>
+                        <button type="button" class="password-toggle" data-target="signUpPassword">👁️</button>
                     </div>
                     <small class="password-hint">Password must be at least 8 characters with uppercase, lowercase, and number</small>
                 </div>
@@ -34,12 +34,12 @@
                     <label for="confirmPassword">Confirm Password</label>
                     <div class="password-input">
                         <input type="password" id="confirmPassword" required minlength="8">
-                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">👁️</button>
+                        <button type="button" class="password-toggle" data-target="confirmPassword">👁️</button>
                     </div>
                 </div>
                 <div id="signUpError" class="auth-error"></div>
                 <button type="submit" class="auth-btn">Sign Up</button>
-                <p class="auth-switch">Already have an account? <a href="#" onclick="switchAuthView('login')">Log In</a></p>
+                <p class="auth-switch">Already have an account? <a href="#" class="auth-switch-link" data-view="login">Log In</a></p>
                 <div class="security-notice">
                     <p><strong>Security Notice:</strong> This is a demo app. Data is stored locally in your browser. For production use, consider a secure backend with proper encryption.</p>
                 </div>
@@ -56,12 +56,12 @@
                     <label for="loginPassword">Password</label>
                     <div class="password-input">
                         <input type="password" id="loginPassword" required>
-                        <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">👁️</button>
+                        <button type="button" class="password-toggle" data-target="loginPassword">👁️</button>
                     </div>
                 </div>
                 <div id="loginError" class="auth-error"></div>
                 <button type="submit" class="auth-btn">Log In</button>
-                <p class="auth-switch">Don't have an account? <a href="#" onclick="switchAuthView('signup')">Sign Up</a></p>
+                <p class="auth-switch">Don't have an account? <a href="#" class="auth-switch-link" data-view="signup">Sign Up</a></p>
             </form>
         </div>
     </div>
@@ -254,6 +254,11 @@
                 <section class="trends-section">
                     <h2>📊 Journal Trends</h2>
                     
+                    <!-- Fallback message for when charts are not available -->
+                    <div id="chartsUnavailable" class="charts-unavailable" style="display: none;">
+                        <p>📊 Charts are not available due to security restrictions. Your journal entries and data are still fully functional!</p>
+                    </div>
+                    
                     <!-- Trends Controls -->
                     <div class="trends-controls">
                         <div class="date-range-controls">
@@ -301,7 +306,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="script.js?v=1.2"></script>
+    <script src="script.js?v=1.4"></script>
 </body>
 </html> 

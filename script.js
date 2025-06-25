@@ -283,6 +283,25 @@ function setupAuthEventListeners() {
     signUpForm.addEventListener('submit', handleSignUp);
     loginForm.addEventListener('submit', handleLogin);
     logoutBtn.addEventListener('click', logout);
+    
+    // Handle auth view switching
+    const authSwitchLinks = document.querySelectorAll('.auth-switch-link');
+    authSwitchLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const view = link.getAttribute('data-view');
+            switchAuthView(view);
+        });
+    });
+    
+    // Handle password toggle buttons
+    const passwordToggles = document.querySelectorAll('.password-toggle');
+    passwordToggles.forEach(toggle => {
+        toggle.addEventListener('click', () => {
+            const targetId = toggle.getAttribute('data-target');
+            togglePassword(targetId);
+        });
+    });
 }
 
 /**
@@ -1189,20 +1208,60 @@ yearSelect.addEventListener('change', function() {
 });
 
 /**
- * Initialize charts
+ * Initialize charts if Chart.js is available
  */
 function initializeCharts() {
-    createMoodTrendsChart();
-    createTagFrequencyChart();
+    // Check if Chart.js is available (may be blocked by CSP)
+    if (typeof Chart === 'undefined') {
+        console.warn('Chart.js not available - charts will be disabled');
+        // Show fallback message
+        const chartsUnavailable = document.getElementById('chartsUnavailable');
+        if (chartsUnavailable) {
+            chartsUnavailable.style.display = 'block';
+        }
+        // Hide chart elements
+        const chartElements = document.querySelectorAll('.trend-chart');
+        chartElements.forEach(element => {
+            element.style.display = 'none';
+        });
+        return;
+    }
+    
+    try {
+        createMoodTrendsChart();
+        createTagFrequencyChart();
+        setupTrendsEventListeners();
+    } catch (error) {
+        console.error('Error initializing charts:', error);
+        // Show fallback message
+        const chartsUnavailable = document.getElementById('chartsUnavailable');
+        if (chartsUnavailable) {
+            chartsUnavailable.style.display = 'block';
+        }
+        // Hide chart elements if there's an error
+        const chartElements = document.querySelectorAll('.trend-chart');
+        chartElements.forEach(element => {
+            element.style.display = 'none';
+        });
+    }
 }
 
 /**
  * Create mood trends chart
  */
 function createMoodTrendsChart() {
-    const ctx = document.getElementById('moodTrendsChart');
-    if (!ctx) return;
+    if (typeof Chart === 'undefined') {
+        console.warn('Chart.js not available - skipping mood trends chart');
+        return;
+    }
     
+    const ctx = document.getElementById('moodTrendsChart');
+    if (!ctx) {
+        console.warn('Mood trends chart canvas not found');
+        return;
+    }
+    
+    // Destroy existing chart if it exists
     if (moodTrendsChart) {
         moodTrendsChart.destroy();
     }
@@ -1210,16 +1269,14 @@ function createMoodTrendsChart() {
     const data = getMoodTrendsData();
     
     moodTrendsChart = new Chart(ctx, {
-        type: 'bar',
+        type: 'doughnut',
         data: {
             labels: data.labels,
             datasets: [{
-                label: 'Mood Frequency',
                 data: data.values,
                 backgroundColor: data.colors,
-                borderColor: chartColors.border,
-                borderWidth: 1,
-                borderRadius: 4
+                borderWidth: 2,
+                borderColor: '#ffffff'
             }]
         },
         options: {
@@ -1230,44 +1287,39 @@ function createMoodTrendsChart() {
                     display: false
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    titleColor: 'white',
-                    bodyColor: 'white',
-                    borderColor: chartColors.primary,
-                    borderWidth: 1
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1,
-                        color: chartColors.text
-                    },
-                    grid: {
-                        color: chartColors.border
-                    }
-                },
-                x: {
-                    ticks: {
-                        color: chartColors.text
-                    },
-                    grid: {
-                        color: chartColors.border
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
                     }
                 }
             }
         }
     });
+    
+    updateMoodChartLegend(data);
 }
 
 /**
  * Create tag frequency chart
  */
 function createTagFrequencyChart() {
-    const ctx = document.getElementById('tagFrequencyChart');
-    if (!ctx) return;
+    if (typeof Chart === 'undefined') {
+        console.warn('Chart.js not available - skipping tag frequency chart');
+        return;
+    }
     
+    const ctx = document.getElementById('tagFrequencyChart');
+    if (!ctx) {
+        console.warn('Tag frequency chart canvas not found');
+        return;
+    }
+    
+    // Destroy existing chart if it exists
     if (tagFrequencyChart) {
         tagFrequencyChart.destroy();
     }
@@ -1281,8 +1333,8 @@ function createTagFrequencyChart() {
             datasets: [{
                 data: data.values,
                 backgroundColor: data.colors,
-                borderColor: 'white',
-                borderWidth: 2
+                borderWidth: 2,
+                borderColor: '#ffffff'
             }]
         },
         options: {
@@ -1290,23 +1342,24 @@ function createTagFrequencyChart() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: chartColors.text,
-                        padding: 15,
-                        usePointStyle: true
-                    }
+                    display: false
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    titleColor: 'white',
-                    bodyColor: 'white',
-                    borderColor: chartColors.primary,
-                    borderWidth: 1
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
                 }
             }
         }
     });
+    
+    updateTagChartLegend(data);
 }
 
 /**
@@ -1387,23 +1440,34 @@ function getTagFrequencyData() {
 }
 
 /**
- * Update charts with current data
+ * Update charts with new data
  */
 function updateCharts() {
-    if (moodTrendsChart) {
-        const moodData = getMoodTrendsData();
-        moodTrendsChart.data.labels = moodData.labels;
-        moodTrendsChart.data.datasets[0].data = moodData.values;
-        moodTrendsChart.data.datasets[0].backgroundColor = moodData.colors;
-        moodTrendsChart.update();
+    if (typeof Chart === 'undefined') {
+        console.warn('Chart.js not available - skipping chart updates');
+        return;
     }
     
-    if (tagFrequencyChart) {
-        const tagData = getTagFrequencyData();
-        tagFrequencyChart.data.labels = tagData.labels;
-        tagFrequencyChart.data.datasets[0].data = tagData.values;
-        tagFrequencyChart.data.datasets[0].backgroundColor = tagData.colors;
-        tagFrequencyChart.update();
+    try {
+        if (moodTrendsChart) {
+            const moodData = getMoodTrendsData();
+            moodTrendsChart.data.labels = moodData.labels;
+            moodTrendsChart.data.datasets[0].data = moodData.values;
+            moodTrendsChart.data.datasets[0].backgroundColor = moodData.colors;
+            moodTrendsChart.update();
+            updateMoodChartLegend(moodData);
+        }
+        
+        if (tagFrequencyChart) {
+            const tagData = getTagFrequencyData();
+            tagFrequencyChart.data.labels = tagData.labels;
+            tagFrequencyChart.data.datasets[0].data = tagData.values;
+            tagFrequencyChart.data.datasets[0].backgroundColor = tagData.colors;
+            tagFrequencyChart.update();
+            updateTagChartLegend(tagData);
+        }
+    } catch (error) {
+        console.error('Error updating charts:', error);
     }
 }
 
@@ -1955,50 +2019,6 @@ function updateTagChartLegend(data) {
     }
     
     tagChartLegend.innerHTML = legendHtml;
-}
-
-/**
- * Update charts with current data
- */
-function updateCharts() {
-    if (moodTrendsChart) {
-        const moodData = getMoodTrendsData();
-        moodTrendsChart.data.labels = moodData.labels;
-        moodTrendsChart.data.datasets[0].data = moodData.values;
-        moodTrendsChart.data.datasets[0].backgroundColor = moodData.colors;
-        
-        if (comparisonEnabled && moodData.comparisonValues) {
-            if (moodTrendsChart.data.datasets.length === 1) {
-                moodTrendsChart.data.datasets.push({
-                    label: 'Previous Period',
-                    data: moodData.comparisonValues,
-                    backgroundColor: moodData.comparisonColors,
-                    borderColor: chartColors.border,
-                    borderWidth: 1,
-                    borderRadius: 4,
-                    opacity: 0.7
-                });
-            } else {
-                moodTrendsChart.data.datasets[1].data = moodData.comparisonValues;
-                moodTrendsChart.data.datasets[1].backgroundColor = moodData.comparisonColors;
-            }
-        } else if (!comparisonEnabled && moodTrendsChart.data.datasets.length > 1) {
-            moodTrendsChart.data.datasets.splice(1, 1);
-        }
-        
-        moodTrendsChart.options.plugins.legend.display = comparisonEnabled;
-        moodTrendsChart.update();
-        updateMoodChartLegend(moodData);
-    }
-    
-    if (tagFrequencyChart) {
-        const tagData = getTagFrequencyData();
-        tagFrequencyChart.data.labels = tagData.labels;
-        tagFrequencyChart.data.datasets[0].data = tagData.values;
-        tagFrequencyChart.data.datasets[0].backgroundColor = tagData.colors;
-        tagFrequencyChart.update();
-        updateTagChartLegend(tagData);
-    }
 }
 
 // Function to get user-specific storage key
