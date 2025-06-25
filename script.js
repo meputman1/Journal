@@ -94,6 +94,21 @@ const moodColors = {
     creative: '#9f7aea'
 };
 
+// Trends state
+let currentDateRange = 'month';
+let comparisonEnabled = false;
+let customStartDate = null;
+let customEndDate = null;
+
+// DOM elements for trends
+const dateRangeSelect = document.getElementById('dateRangeSelect');
+const customDateRange = document.getElementById('customDateRange');
+const startDate = document.getElementById('startDate');
+const endDate = document.getElementById('endDate');
+const comparisonToggle = document.getElementById('comparisonToggle');
+const moodChartLegend = document.getElementById('moodChartLegend');
+const tagChartLegend = document.getElementById('tagChartLegend');
+
 // Initialize the app when the page loads
 document.addEventListener('DOMContentLoaded', function() {
     checkAuthState();
@@ -386,6 +401,9 @@ function setupEventListeners() {
         privacyModeToggle.setAttribute('aria-pressed', privacyMode ? 'true' : 'false');
         privacyModeToggle.addEventListener('click', togglePrivacyMode);
     }
+
+    // Setup trends event listeners
+    setupTrendsEventListeners();
 }
 
 /**
@@ -1238,5 +1256,539 @@ function updatePrivacyModeUI() {
                 day.style.opacity = '';
             });
         }
+    }
+}
+
+/**
+ * Setup trends event listeners
+ */
+function setupTrendsEventListeners() {
+    if (dateRangeSelect) {
+        dateRangeSelect.addEventListener('change', handleDateRangeChange);
+    }
+    if (comparisonToggle) {
+        comparisonToggle.addEventListener('change', handleComparisonToggle);
+    }
+    if (startDate) {
+        startDate.addEventListener('change', handleCustomDateChange);
+    }
+    if (endDate) {
+        endDate.addEventListener('change', handleCustomDateChange);
+    }
+}
+
+/**
+ * Handle date range selection change
+ */
+function handleDateRangeChange() {
+    currentDateRange = dateRangeSelect.value;
+    
+    if (currentDateRange === 'custom') {
+        customDateRange.style.display = 'flex';
+        // Set default custom range to last 30 days
+        const end = new Date();
+        const start = new Date();
+        start.setDate(start.getDate() - 30);
+        
+        startDate.value = start.toISOString().split('T')[0];
+        endDate.value = end.toISOString().split('T')[0];
+        customStartDate = start;
+        customEndDate = end;
+    } else {
+        customDateRange.style.display = 'none';
+        customStartDate = null;
+        customEndDate = null;
+    }
+    
+    updateCharts();
+}
+
+/**
+ * Handle comparison toggle
+ */
+function handleComparisonToggle() {
+    comparisonEnabled = comparisonToggle.checked;
+    updateCharts();
+}
+
+/**
+ * Handle custom date change
+ */
+function handleCustomDateChange() {
+    if (startDate.value && endDate.value) {
+        customStartDate = new Date(startDate.value);
+        customEndDate = new Date(endDate.value);
+        updateCharts();
+    }
+}
+
+/**
+ * Get date range based on selection
+ */
+function getDateRange() {
+    const now = new Date();
+    let start, end;
+    
+    switch (currentDateRange) {
+        case '7':
+            end = new Date(now);
+            start = new Date(now);
+            start.setDate(start.getDate() - 7);
+            break;
+        case '30':
+            end = new Date(now);
+            start = new Date(now);
+            start.setDate(start.getDate() - 30);
+            break;
+        case 'month':
+            start = new Date(now.getFullYear(), now.getMonth(), 1);
+            end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            break;
+        case 'lastMonth':
+            start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            end = new Date(now.getFullYear(), now.getMonth(), 0);
+            break;
+        case 'year':
+            start = new Date(now.getFullYear(), 0, 1);
+            end = new Date(now.getFullYear(), 11, 31);
+            break;
+        case 'custom':
+            start = customStartDate;
+            end = customEndDate;
+            break;
+        default:
+            start = new Date(now.getFullYear(), now.getMonth(), 1);
+            end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    }
+    
+    return { start, end };
+}
+
+/**
+ * Get comparison date range
+ */
+function getComparisonDateRange() {
+    const { start, end } = getDateRange();
+    const duration = end.getTime() - start.getTime();
+    
+    const comparisonEnd = new Date(start.getTime() - 1);
+    const comparisonStart = new Date(comparisonEnd.getTime() - duration);
+    
+    return { start: comparisonStart, end: comparisonEnd };
+}
+
+/**
+ * Filter entries by date range
+ */
+function filterEntriesByDateRange(start, end) {
+    return journalEntries.filter(entry => {
+        const entryDate = new Date(entry.date);
+        return entryDate >= start && entryDate <= end;
+    });
+}
+
+/**
+ * Calculate trend percentage
+ */
+function calculateTrendPercentage(current, previous) {
+    if (previous === 0) {
+        return current > 0 ? 100 : 0;
+    }
+    return Math.round(((current - previous) / previous) * 100);
+}
+
+/**
+ * Get trend indicator
+ */
+function getTrendIndicator(percentage) {
+    if (percentage > 0) {
+        return `<span class="trend-indicator trend-up">📈 +${percentage}%</span>`;
+    } else if (percentage < 0) {
+        return `<span class="trend-indicator trend-down">📉 ${percentage}%</span>`;
+    } else {
+        return `<span class="trend-indicator trend-neutral">➡️ 0%</span>`;
+    }
+}
+
+/**
+ * Create mood trends chart with comparison
+ */
+function createMoodTrendsChart() {
+    const ctx = document.getElementById('moodTrendsChart');
+    if (!ctx) return;
+    
+    if (moodTrendsChart) {
+        moodTrendsChart.destroy();
+    }
+    
+    const data = getMoodTrendsData();
+    
+    const datasets = [{
+        label: 'Current Period',
+        data: data.values,
+        backgroundColor: data.colors,
+        borderColor: chartColors.border,
+        borderWidth: 1,
+        borderRadius: 4
+    }];
+    
+    if (comparisonEnabled && data.comparisonValues) {
+        datasets.push({
+            label: 'Previous Period',
+            data: data.comparisonValues,
+            backgroundColor: data.comparisonColors,
+            borderColor: chartColors.border,
+            borderWidth: 1,
+            borderRadius: 4,
+            opacity: 0.7
+        });
+    }
+    
+    moodTrendsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: comparisonEnabled,
+                    position: 'top',
+                    labels: {
+                        color: chartColors.text,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    titleColor: 'white',
+                    bodyColor: 'white',
+                    borderColor: chartColors.primary,
+                    borderWidth: 1,
+                    callbacks: {
+                        afterBody: function(context) {
+                            if (comparisonEnabled && data.trends) {
+                                const index = context[0].dataIndex;
+                                const trend = data.trends[index];
+                                if (trend) {
+                                    return [`${trend}`];
+                                }
+                            }
+                            return [];
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        color: chartColors.text
+                    },
+                    grid: {
+                        color: chartColors.border
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: chartColors.text
+                    },
+                    grid: {
+                        color: chartColors.border
+                    }
+                }
+            }
+        }
+    });
+    
+    updateMoodChartLegend(data);
+}
+
+/**
+ * Create tag frequency chart with comparison
+ */
+function createTagFrequencyChart() {
+    const ctx = document.getElementById('tagFrequencyChart');
+    if (!ctx) return;
+    
+    if (tagFrequencyChart) {
+        tagFrequencyChart.destroy();
+    }
+    
+    const data = getTagFrequencyData();
+    
+    tagFrequencyChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                data: data.values,
+                backgroundColor: data.colors,
+                borderColor: 'white',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: chartColors.text,
+                        padding: 15,
+                        usePointStyle: true,
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                return data.labels.map((label, i) => {
+                                    const value = data.datasets[0].data[i];
+                                    const trend = comparisonEnabled && data.trends ? data.trends[i] : '';
+                                    return {
+                                        text: `${label}: ${value}${trend}`,
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        strokeStyle: data.datasets[0].backgroundColor[i],
+                                        lineWidth: 0,
+                                        pointStyle: 'circle',
+                                        hidden: false,
+                                        index: i
+                                    };
+                                });
+                            }
+                            return [];
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    titleColor: 'white',
+                    bodyColor: 'white',
+                    borderColor: chartColors.primary,
+                    borderWidth: 1,
+                    callbacks: {
+                        afterBody: function(context) {
+                            if (comparisonEnabled && data.trends) {
+                                const index = context[0].dataIndex;
+                                const trend = data.trends[index];
+                                if (trend) {
+                                    return [`${trend}`];
+                                }
+                            }
+                            return [];
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    updateTagChartLegend(data);
+}
+
+/**
+ * Get enhanced mood trends data with comparison
+ */
+function getMoodTrendsData() {
+    const { start, end } = getDateRange();
+    const currentEntries = filterEntriesByDateRange(start, end);
+    
+    // Count current mood frequencies
+    const moodCounts = {};
+    currentEntries.forEach(entry => {
+        if (entry.mood) {
+            moodCounts[entry.mood] = (moodCounts[entry.mood] || 0) + 1;
+        }
+    });
+    
+    // Sort by frequency and get top moods
+    const sortedMoods = Object.entries(moodCounts)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 8);
+    
+    const result = {
+        labels: sortedMoods.map(([mood]) => getMoodInfo(mood).name),
+        values: sortedMoods.map(([, count]) => count),
+        colors: sortedMoods.map(([mood]) => moodColors[mood] || chartColors.primary),
+        comparisonValues: null,
+        comparisonColors: null,
+        trends: null
+    };
+    
+    // Add comparison data if enabled
+    if (comparisonEnabled) {
+        const { start: compStart, end: compEnd } = getComparisonDateRange();
+        const comparisonEntries = filterEntriesByDateRange(compStart, compEnd);
+        
+        const comparisonCounts = {};
+        comparisonEntries.forEach(entry => {
+            if (entry.mood) {
+                comparisonCounts[entry.mood] = (comparisonCounts[entry.mood] || 0) + 1;
+            }
+        });
+        
+        result.comparisonValues = sortedMoods.map(([mood]) => comparisonCounts[mood] || 0);
+        result.comparisonColors = sortedMoods.map(([mood]) => {
+            const color = moodColors[mood] || chartColors.primary;
+            return color + '80'; // Add transparency
+        });
+        
+        // Calculate trends
+        result.trends = sortedMoods.map(([mood, currentCount]) => {
+            const previousCount = comparisonCounts[mood] || 0;
+            const percentage = calculateTrendPercentage(currentCount, previousCount);
+            return getTrendIndicator(percentage);
+        });
+    }
+    
+    return result;
+}
+
+/**
+ * Get enhanced tag frequency data with comparison
+ */
+function getTagFrequencyData() {
+    const { start, end } = getDateRange();
+    const currentEntries = filterEntriesByDateRange(start, end);
+    
+    // Count current tag frequencies
+    const tagCounts = {};
+    currentEntries.forEach(entry => {
+        if (entry.tags && entry.tags.length > 0) {
+            entry.tags.forEach(tag => {
+                tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+            });
+        }
+    });
+    
+    // Sort by frequency and get top 5 tags
+    const sortedTags = Object.entries(tagCounts)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5);
+    
+    const tagColors = [
+        chartColors.primary,
+        chartColors.secondary,
+        chartColors.accent,
+        '#ed8936',
+        '#9f7aea'
+    ];
+    
+    const result = {
+        labels: sortedTags.map(([tag]) => `#${tag}`),
+        values: sortedTags.map(([, count]) => count),
+        colors: sortedTags.map((_, index) => tagColors[index] || chartColors.primary),
+        trends: null
+    };
+    
+    // Add comparison data if enabled
+    if (comparisonEnabled) {
+        const { start: compStart, end: compEnd } = getComparisonDateRange();
+        const comparisonEntries = filterEntriesByDateRange(compStart, compEnd);
+        
+        const comparisonCounts = {};
+        comparisonEntries.forEach(entry => {
+            if (entry.tags && entry.tags.length > 0) {
+                entry.tags.forEach(tag => {
+                    comparisonCounts[tag] = (comparisonCounts[tag] || 0) + 1;
+                });
+            }
+        });
+        
+        // Calculate trends
+        result.trends = sortedTags.map(([tag, currentCount]) => {
+            const previousCount = comparisonCounts[tag] || 0;
+            const percentage = calculateTrendPercentage(currentCount, previousCount);
+            return getTrendIndicator(percentage);
+        });
+    }
+    
+    return result;
+}
+
+/**
+ * Update mood chart legend
+ */
+function updateMoodChartLegend(data) {
+    if (!moodChartLegend) return;
+    
+    let legendHtml = '';
+    if (comparisonEnabled) {
+        legendHtml = `
+            <div class="legend-item">
+                <div class="legend-color" style="background: ${chartColors.primary}"></div>
+                <span class="legend-label">Current Period</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: ${chartColors.primary}80"></div>
+                <span class="legend-label">Previous Period</span>
+            </div>
+        `;
+    }
+    
+    moodChartLegend.innerHTML = legendHtml;
+}
+
+/**
+ * Update tag chart legend
+ */
+function updateTagChartLegend(data) {
+    if (!tagChartLegend) return;
+    
+    let legendHtml = '';
+    if (comparisonEnabled && data.trends) {
+        legendHtml = '<div class="legend-item"><span class="legend-label">Trends:</span></div>';
+        data.trends.forEach(trend => {
+            legendHtml += `<div class="legend-item">${trend}</div>`;
+        });
+    }
+    
+    tagChartLegend.innerHTML = legendHtml;
+}
+
+/**
+ * Update charts with current data
+ */
+function updateCharts() {
+    if (moodTrendsChart) {
+        const moodData = getMoodTrendsData();
+        moodTrendsChart.data.labels = moodData.labels;
+        moodTrendsChart.data.datasets[0].data = moodData.values;
+        moodTrendsChart.data.datasets[0].backgroundColor = moodData.colors;
+        
+        if (comparisonEnabled && moodData.comparisonValues) {
+            if (moodTrendsChart.data.datasets.length === 1) {
+                moodTrendsChart.data.datasets.push({
+                    label: 'Previous Period',
+                    data: moodData.comparisonValues,
+                    backgroundColor: moodData.comparisonColors,
+                    borderColor: chartColors.border,
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    opacity: 0.7
+                });
+            } else {
+                moodTrendsChart.data.datasets[1].data = moodData.comparisonValues;
+                moodTrendsChart.data.datasets[1].backgroundColor = moodData.comparisonColors;
+            }
+        } else if (!comparisonEnabled && moodTrendsChart.data.datasets.length > 1) {
+            moodTrendsChart.data.datasets.splice(1, 1);
+        }
+        
+        moodTrendsChart.options.plugins.legend.display = comparisonEnabled;
+        moodTrendsChart.update();
+        updateMoodChartLegend(moodData);
+    }
+    
+    if (tagFrequencyChart) {
+        const tagData = getTagFrequencyData();
+        tagFrequencyChart.data.labels = tagData.labels;
+        tagFrequencyChart.data.datasets[0].data = tagData.values;
+        tagFrequencyChart.data.datasets[0].backgroundColor = tagData.colors;
+        tagFrequencyChart.update();
+        updateTagChartLegend(tagData);
     }
 } 

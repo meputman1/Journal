@@ -249,13 +249,46 @@
                 <!-- Journal Trends Section -->
                 <section class="trends-section">
                     <h2>📊 Journal Trends</h2>
+                    
+                    <!-- Trends Controls -->
+                    <div class="trends-controls">
+                        <div class="date-range-controls">
+                            <label for="dateRangeSelect">Time Range:</label>
+                            <select id="dateRangeSelect" class="trends-select">
+                                <option value="7">Last 7 days</option>
+                                <option value="30">Last 30 days</option>
+                                <option value="month" selected>This month</option>
+                                <option value="lastMonth">Last month</option>
+                                <option value="year">This year</option>
+                                <option value="custom">Custom range</option>
+                            </select>
+                        </div>
+                        
+                        <div class="custom-date-range" id="customDateRange" style="display: none;">
+                            <label for="startDate">From:</label>
+                            <input type="date" id="startDate" class="trends-date-input">
+                            <label for="endDate">To:</label>
+                            <input type="date" id="endDate" class="trends-date-input">
+                        </div>
+                        
+                        <div class="comparison-controls">
+                            <label class="comparison-toggle">
+                                <input type="checkbox" id="comparisonToggle">
+                                <span class="toggle-slider"></span>
+                                Compare with previous period
+                            </label>
+                        </div>
+                    </div>
+                    
                     <div class="trends-container">
                         <div class="trend-chart">
                             <h3>Mood Trends</h3>
+                            <div class="chart-legend" id="moodChartLegend"></div>
                             <canvas id="moodTrendsChart"></canvas>
                         </div>
                         <div class="trend-chart">
                             <h3>Tag Frequency</h3>
+                            <div class="chart-legend" id="tagChartLegend"></div>
                             <canvas id="tagFrequencyChart"></canvas>
                         </div>
                     </div>
