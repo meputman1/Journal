@@ -34,6 +34,9 @@ const loginAttempts = new Map();
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
 
+// Encryption for journal entries
+const ENCRYPTION_KEY = 'your-personal-encryption-key-change-this';
+
 // Improved password validation
 function isValidPassword(password) {
     // At least 8 characters, with at least one uppercase, one lowercase, one number
@@ -353,7 +356,7 @@ function togglePassword(inputId) {
         toggle.textContent = '🙈';
     } else {
         input.type = 'password';
-        toggle.textContent = '��️';
+        toggle.textContent = '🙉';
     }
 }
 
@@ -743,41 +746,48 @@ function handleFormSubmit(event) {
 }
 
 /**
- * Saves entries to localStorage
+ * Save entries to localStorage
  */
 function saveEntries() {
-    try {
-        localStorage.setItem(getStorageKey(), JSON.stringify(journalEntries));
-    } catch (error) {
-        console.error('Error saving entries to localStorage:', error);
-    }
+    const key = getStorageKey();
+    console.log('Saving entries with storage key:', key);
+    
+    // Encrypt entries before saving
+    const entriesToSave = journalEntries.map(entry => ({
+        ...entry,
+        text: encryptText(entry.text),
+        tags: entry.tags ? entry.tags.map(tag => encryptText(tag)) : []
+    }));
+    
+    localStorage.setItem(key, JSON.stringify(entriesToSave));
+    console.log('Entries saved, count:', entriesToSave.length);
 }
 
 /**
- * Loads entries from localStorage
+ * Load entries from localStorage
  */
 function loadEntries() {
+    const key = getStorageKey();
+    console.log('Loading entries with storage key:', key);
+    
     try {
-        const storageKey = getStorageKey();
-        console.log('Loading entries with storage key:', storageKey);
-        const savedEntries = localStorage.getItem(storageKey);
+        const savedEntries = localStorage.getItem(key);
         console.log('Saved entries found:', savedEntries ? 'yes' : 'no');
         
         if (savedEntries) {
-            journalEntries = JSON.parse(savedEntries).map(entry => {
-                if (!entry.dateString) {
-                    entry.dateString = new Date(entry.date).toISOString().split('T')[0];
-                }
-                // Ensure tags exist for older entries
-                if (!entry.tags) {
-                    entry.tags = [];
-                }
-                return entry;
-            });
-            console.log('Loaded entries count:', journalEntries.length);
+            const parsedEntries = JSON.parse(savedEntries);
+            
+            // Decrypt entries after loading
+            journalEntries = parsedEntries.map(entry => ({
+                ...entry,
+                text: decryptText(entry.text),
+                tags: entry.tags ? entry.tags.map(tag => decryptText(tag)) : []
+            }));
+            
+            console.log('Entries loaded, count:', journalEntries.length);
         } else {
-            journalEntries = [];
             console.log('No saved entries found, initialized empty array');
+            journalEntries = [];
         }
     } catch (error) {
         console.error('Error loading entries from localStorage:', error);
@@ -1989,4 +1999,43 @@ function getStorageKey() {
     console.log('getStorageKey called, currentUser:', currentUser ? currentUser.email : 'null');
     console.log('Storage key:', key);
     return key;
+}
+
+/**
+ * Simple encryption function for journal entries
+ */
+function encryptText(text) {
+    if (!text) return text;
+    try {
+        // Simple XOR encryption with the key
+        let encrypted = '';
+        for (let i = 0; i < text.length; i++) {
+            const charCode = text.charCodeAt(i) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length);
+            encrypted += String.fromCharCode(charCode);
+        }
+        return btoa(encrypted); // Base64 encode
+    } catch (error) {
+        console.error('Encryption error:', error);
+        return text; // Fallback to plain text
+    }
+}
+
+/**
+ * Simple decryption function for journal entries
+ */
+function decryptText(encryptedText) {
+    if (!encryptedText) return encryptedText;
+    try {
+        // Base64 decode first
+        const decoded = atob(encryptedText);
+        let decrypted = '';
+        for (let i = 0; i < decoded.length; i++) {
+            const charCode = decoded.charCodeAt(i) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length);
+            decrypted += String.fromCharCode(charCode);
+        }
+        return decrypted;
+    } catch (error) {
+        console.error('Decryption error:', error);
+        return encryptedText; // Fallback to encrypted text
+    }
 } 
