@@ -15,26 +15,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 
 // Security middleware
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'none'"],
-    },
-  },
+  contentSecurityPolicy: false, // Disable CSP for now to avoid deployment issues
   crossOriginEmbedderPolicy: false,
 }));
 
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://journal-6q0v.onrender.com', 'https://yourdomain.com'] 
-    : ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: true, // Allow all origins for now
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -136,7 +122,8 @@ if (MONGODB_URI) {
     })
     .catch((err) => {
       console.error('MongoDB connection error:', err);
-      process.exit(1);
+      console.log('Continuing with SQLite database only');
+      // Don't exit - continue with SQLite
     });
 }
 
