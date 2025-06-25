@@ -111,10 +111,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
 let useMongo = false;
 
 if (MONGODB_URI) {
-  mongoose.connect(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  mongoose.connect(MONGODB_URI)
     .then(() => {
       useMongo = true;
       console.log('Connected to MongoDB Atlas');
