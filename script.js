@@ -1,5 +1,24 @@
 // Enhanced Journal App JavaScript
 
+// Authentication state
+let currentUser = null;
+let isAuthenticated = false;
+
+// DOM elements for authentication
+const authOverlay = document.getElementById('authOverlay');
+const mainApp = document.getElementById('mainApp');
+const signUpForm = document.getElementById('signUpForm');
+const loginForm = document.getElementById('loginForm');
+const signUpEmail = document.getElementById('signUpEmail');
+const signUpPassword = document.getElementById('signUpPassword');
+const confirmPassword = document.getElementById('confirmPassword');
+const loginEmail = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
+const signUpError = document.getElementById('signUpError');
+const loginError = document.getElementById('loginError');
+const userEmail = document.getElementById('userEmail');
+const logoutBtn = document.getElementById('logoutBtn');
+
 // Global variables
 let journalEntries = [];
 const STORAGE_KEY = 'journalEntries';
@@ -40,7 +59,8 @@ const yearSelect = document.getElementById('yearSelect');
 
 // Initialize the app when the page loads
 document.addEventListener('DOMContentLoaded', function() {
-    loadEntries();
+    checkAuthState();
+    setupAuthEventListeners();
     setupEventListeners();
     renderCalendar();
     displayEntries();
@@ -48,6 +68,234 @@ document.addEventListener('DOMContentLoaded', function() {
     syncMonthYearSelectors();
     updatePrivacyModeUI();
 });
+
+/**
+ * Check authentication state on page load
+ */
+function checkAuthState() {
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+        try {
+            currentUser = JSON.parse(savedUser);
+            isAuthenticated = true;
+            showMainApp();
+        } catch (error) {
+            console.error('Error parsing saved user:', error);
+            logout();
+        }
+    } else {
+        showAuthOverlay();
+    }
+}
+
+/**
+ * Setup authentication event listeners
+ */
+function setupAuthEventListeners() {
+    signUpForm.addEventListener('submit', handleSignUp);
+    loginForm.addEventListener('submit', handleLogin);
+    logoutBtn.addEventListener('click', logout);
+}
+
+/**
+ * Show authentication overlay
+ */
+function showAuthOverlay() {
+    authOverlay.style.display = 'flex';
+    mainApp.style.display = 'none';
+}
+
+/**
+ * Show main app
+ */
+function showMainApp() {
+    authOverlay.style.display = 'none';
+    mainApp.style.display = 'block';
+    
+    if (currentUser) {
+        userEmail.textContent = currentUser.email;
+    }
+    
+    // Initialize app features
+    loadEntries();
+    renderCalendar();
+    displayEntries();
+    populateMonthYearSelectors();
+    syncMonthYearSelectors();
+    updatePrivacyModeUI();
+    
+    // Privacy Mode setup
+    if (privacyModeToggle) {
+        privacyModeToggle.setAttribute('aria-pressed', privacyMode ? 'true' : 'false');
+        privacyModeToggle.addEventListener('click', togglePrivacyMode);
+    }
+}
+
+/**
+ * Toggle password visibility
+ */
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const toggle = input.parentElement.querySelector('.password-toggle');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        toggle.textContent = '🙈';
+    } else {
+        input.type = 'password';
+        toggle.textContent = '👁️';
+    }
+}
+
+/**
+ * Switch between sign up and login views
+ */
+function switchAuthView(view) {
+    if (view === 'login') {
+        signUpForm.style.display = 'none';
+        loginForm.style.display = 'block';
+        clearAuthErrors();
+    } else {
+        loginForm.style.display = 'none';
+        signUpForm.style.display = 'block';
+        clearAuthErrors();
+    }
+}
+
+/**
+ * Clear authentication error messages
+ */
+function clearAuthErrors() {
+    signUpError.textContent = '';
+    loginError.textContent = '';
+}
+
+/**
+ * Validate email format
+ */
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+/**
+ * Validate password strength
+ */
+function isValidPassword(password) {
+    return password.length >= 6;
+}
+
+/**
+ * Handle sign up form submission
+ */
+function handleSignUp(event) {
+    event.preventDefault();
+    clearAuthErrors();
+    
+    const email = signUpEmail.value.trim();
+    const password = signUpPassword.value;
+    const confirm = confirmPassword.value;
+    
+    // Validation
+    if (!isValidEmail(email)) {
+        signUpError.textContent = 'Please enter a valid email address.';
+        return;
+    }
+    
+    if (!isValidPassword(password)) {
+        signUpError.textContent = 'Password must be at least 6 characters long.';
+        return;
+    }
+    
+    if (password !== confirm) {
+        signUpError.textContent = 'Passwords do not match.';
+        return;
+    }
+    
+    // Check if user already exists
+    const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
+    if (existingUsers.find(user => user.email === email)) {
+        signUpError.textContent = 'An account with this email already exists.';
+        return;
+    }
+    
+    // Create new user
+    const newUser = {
+        id: Date.now(),
+        email: email,
+        password: password, // In a real app, this should be hashed
+        createdAt: new Date().toISOString()
+    };
+    
+    // Save user
+    existingUsers.push(newUser);
+    localStorage.setItem('users', JSON.stringify(existingUsers));
+    
+    // Log in the new user
+    currentUser = { id: newUser.id, email: newUser.email };
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    isAuthenticated = true;
+    
+    showMainApp();
+    showSuccessMessage('Account created successfully!');
+}
+
+/**
+ * Handle login form submission
+ */
+function handleLogin(event) {
+    event.preventDefault();
+    clearAuthErrors();
+    
+    const email = loginEmail.value.trim();
+    const password = loginPassword.value;
+    
+    // Validation
+    if (!isValidEmail(email)) {
+        loginError.textContent = 'Please enter a valid email address.';
+        return;
+    }
+    
+    if (!password) {
+        loginError.textContent = 'Please enter your password.';
+        return;
+    }
+    
+    // Check credentials
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const user = users.find(u => u.email === email && u.password === password);
+    
+    if (!user) {
+        loginError.textContent = 'Invalid email or password.';
+        return;
+    }
+    
+    // Log in user
+    currentUser = { id: user.id, email: user.email };
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    isAuthenticated = true;
+    
+    showMainApp();
+    showSuccessMessage('Welcome back!');
+}
+
+/**
+ * Handle logout
+ */
+function logout() {
+    currentUser = null;
+    isAuthenticated = false;
+    localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('privacyMode');
+    sessionStorage.removeItem('privacyPin');
+    
+    showAuthOverlay();
+    
+    // Clear forms
+    signUpForm.reset();
+    loginForm.reset();
+    clearAuthErrors();
+}
 
 /**
  * Sets up all event listeners for the application
@@ -361,7 +609,7 @@ function renderCalendar() {
             dayElement.className = 'calendar-day';
             dayElement.textContent = day;
             dayElement.setAttribute('role', 'gridcell');
-            dayElement.setAttribute('tabindex', '-1');
+            emptyDay.setAttribute('tabindex', '-1');
             const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             dayElement.dataset.datestring = dateString;
             if (journalEntries.some(entry => entry.dateString === dateString)) {
