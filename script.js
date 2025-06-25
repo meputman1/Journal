@@ -34,8 +34,8 @@ const loginAttempts = new Map();
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
 
-// Encryption for journal entries
-const ENCRYPTION_KEY = 'your-personal-encryption-key-change-this';
+// Encryption for journal entries - key derived from user password
+let userEncryptionKey = null;
 
 // Improved password validation
 function isValidPassword(password) {
@@ -396,6 +396,9 @@ async function handleFirstTimeSetup(email, password) {
         // Hash the password
         const hashedPassword = await hashPassword(password);
         
+        // Set encryption key for this user
+        await setUserEncryptionKey(password);
+        
         // Create new user
         const newUser = {
             id: Date.now(),
@@ -407,7 +410,7 @@ async function handleFirstTimeSetup(email, password) {
         // Save user
         localStorage.setItem('users', JSON.stringify([newUser]));
         
-        // Create session and log in the new user
+        // Create session and log in user
         const session = createSession(newUser);
         currentUser = { id: newUser.id, email: newUser.email };
         console.log('Initial user created and logged in:', currentUser);
@@ -478,6 +481,9 @@ async function handleLogin(event) {
         // Successful login
         recordLoginAttempt(email, true);
         
+        // Set encryption key for this user
+        await setUserEncryptionKey(password);
+        
         // Create session and log in user
         const session = createSession(user);
         currentUser = { id: user.id, email: user.email };
@@ -514,6 +520,7 @@ function clearSensitiveData() {
 function logout() {
     currentUser = null;
     isAuthenticated = false;
+    userEncryptionKey = null; // Clear encryption key
     clearSession(); // Clear session instead of localStorage
     sessionStorage.removeItem('privacyMode');
     sessionStorage.removeItem('privacyPin');
@@ -2002,15 +2009,39 @@ function getStorageKey() {
 }
 
 /**
+ * Generate encryption key from user password
+ */
+async function generateEncryptionKey(password) {
+    try {
+        // Use the same hashing method as password, but with a different salt
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password + 'journal_encryption_salt_2024');
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 32);
+    } catch (error) {
+        console.error('Error generating encryption key:', error);
+        return null;
+    }
+}
+
+/**
+ * Set encryption key for current user
+ */
+async function setUserEncryptionKey(password) {
+    userEncryptionKey = await generateEncryptionKey(password);
+}
+
+/**
  * Simple encryption function for journal entries
  */
 function encryptText(text) {
-    if (!text) return text;
+    if (!text || !userEncryptionKey) return text;
     try {
-        // Simple XOR encryption with the key
+        // Simple XOR encryption with the user's key
         let encrypted = '';
         for (let i = 0; i < text.length; i++) {
-            const charCode = text.charCodeAt(i) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length);
+            const charCode = text.charCodeAt(i) ^ userEncryptionKey.charCodeAt(i % userEncryptionKey.length);
             encrypted += String.fromCharCode(charCode);
         }
         return btoa(encrypted); // Base64 encode
@@ -2024,13 +2055,13 @@ function encryptText(text) {
  * Simple decryption function for journal entries
  */
 function decryptText(encryptedText) {
-    if (!encryptedText) return encryptedText;
+    if (!encryptedText || !userEncryptionKey) return encryptedText;
     try {
         // Base64 decode first
         const decoded = atob(encryptedText);
         let decrypted = '';
         for (let i = 0; i < decoded.length; i++) {
-            const charCode = decoded.charCodeAt(i) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length);
+            const charCode = decoded.charCodeAt(i) ^ userEncryptionKey.charCodeAt(i % userEncryptionKey.length);
             decrypted += String.fromCharCode(charCode);
         }
         return decrypted;
