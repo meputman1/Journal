@@ -1,5 +1,16 @@
 // Enhanced Journal App JavaScript
 
+// INVITATION CODE SYSTEM:
+// Test users can only be created with valid invitation codes.
+// Valid codes: DEV2024, TEST123, JOURNAL_ACCESS, DEMO_USER
+// 
+// Administrator functions (run in browser console):
+// - displayValidInvitationCodes() - Show all valid codes
+// - addInvitationCode('NEWCODE') - Add a new code
+// - removeInvitationCode('CODE') - Remove a code
+// - displayTestUsers() - Show all test users
+// - clearTestUsers() - Remove all test users
+
 // Authentication state
 let currentUser = null;
 let isAuthenticated = false;
@@ -49,9 +60,21 @@ const changePasswordForm = document.getElementById('changePasswordForm');
 
 // DOM elements for test user creation
 const testUserForm = document.getElementById('testUserForm');
+const invitationCode = document.getElementById('invitationCode');
 const testUserEmail = document.getElementById('testUserEmail');
 const testUserPassword = document.getElementById('testUserPassword');
 const testUserError = document.getElementById('testUserError');
+const accessCodeGroup = document.getElementById('accessCodeGroup');
+const testUserEmailGroup = document.getElementById('testUserEmailGroup');
+const validateAccessCodeBtn = document.getElementById('validateAccessCodeBtn');
+
+// Valid invitation codes (in production, these would be stored securely on the server)
+const VALID_INVITATION_CODES = [
+    'DEV2024',
+    'TEST123',
+    'JOURNAL_ACCESS',
+    'DEMO_USER'
+];
 
 // Improved password validation
 function isValidPassword(password) {
@@ -2293,7 +2316,15 @@ async function handleChangePassword(event) {
  * Setup test user creation event listeners
  */
 function setupTestUserEventListeners() {
-    testUserForm.addEventListener('submit', handleTestUserCreation);
+    console.log('Setting up test user event listeners');
+    console.log('testUserForm element:', testUserForm);
+    
+    if (testUserForm) {
+        testUserForm.addEventListener('submit', handleTestUserCreation);
+        console.log('Test user form event listener added successfully');
+    } else {
+        console.error('testUserForm element not found!');
+    }
 }
 
 /**
@@ -2301,32 +2332,59 @@ function setupTestUserEventListeners() {
  */
 async function handleTestUserCreation(event) {
     event.preventDefault();
+    console.log('Test user creation form submitted');
     
+    const code = sanitizeInput(invitationCode.value);
     const email = sanitizeInput(testUserEmail.value);
     const password = testUserPassword.value;
+    
+    console.log('Invitation code:', code);
+    console.log('Email:', email);
+    console.log('Password length:', password.length);
     
     // Clear previous errors
     testUserError.textContent = '';
     
+    // Validate invitation code
+    if (!code) {
+        testUserError.textContent = 'Please enter an invitation code.';
+        console.log('Invitation code missing');
+        return;
+    }
+    
+    if (!VALID_INVITATION_CODES.includes(code.toUpperCase())) {
+        testUserError.textContent = 'Invalid invitation code. Please contact the administrator for a valid code.';
+        console.log('Invalid invitation code:', code);
+        return;
+    }
+    
     // Validation
     if (!isValidEmail(email)) {
         testUserError.textContent = 'Please enter a valid email address.';
+        console.log('Email validation failed');
         return;
     }
     
     if (!isValidPassword(password)) {
         testUserError.textContent = 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number.';
+        console.log('Password validation failed');
         return;
     }
     
     try {
+        console.log('Starting test user creation process');
+        
         // Hash the password
         const hashedPassword = await hashPassword(password);
+        console.log('Password hashed successfully');
         
         // Check if user already exists
         const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
+        console.log('Existing users:', existingUsers.length);
+        
         if (existingUsers.find(user => user.email === email)) {
             testUserError.textContent = 'A user with this email already exists.';
+            console.log('User already exists');
             return;
         }
         
@@ -2336,12 +2394,17 @@ async function handleTestUserCreation(event) {
             email: email,
             password: hashedPassword,
             createdAt: new Date().toISOString(),
-            isTestUser: true // Mark as test user
+            isTestUser: true, // Mark as test user
+            invitationCode: code.toUpperCase() // Store which code was used
         };
+        
+        console.log('Test user object created:', testUser);
         
         // Add to existing users
         existingUsers.push(testUser);
         localStorage.setItem('users', JSON.stringify(existingUsers));
+        
+        console.log('Test user saved to localStorage');
         
         // Clear form
         testUserForm.reset();
@@ -2349,6 +2412,8 @@ async function handleTestUserCreation(event) {
         // Show success message
         testUserError.style.color = '#48bb78';
         testUserError.textContent = `Test user created successfully! Email: ${email}`;
+        
+        console.log('Test user creation completed successfully');
         
         // Clear success message after 5 seconds
         setTimeout(() => {
@@ -2377,10 +2442,55 @@ function displayTestUsers() {
         
         console.log('Existing test users:');
         testUsers.forEach(user => {
-            console.log(`- Email: ${user.email} (ID: ${user.id})`);
+            console.log(`- Email: ${user.email} (ID: ${user.id}, Code: ${user.invitationCode || 'N/A'})`);
         });
     } catch (error) {
         console.error('Error displaying test users:', error);
+    }
+}
+
+/**
+ * Display valid invitation codes (for administrator use)
+ */
+function displayValidInvitationCodes() {
+    console.log('Valid invitation codes:');
+    VALID_INVITATION_CODES.forEach(code => {
+        console.log(`- ${code}`);
+    });
+}
+
+/**
+ * Add a new invitation code (for administrator use)
+ */
+function addInvitationCode(newCode) {
+    if (typeof newCode === 'string' && newCode.trim()) {
+        const code = newCode.trim().toUpperCase();
+        if (!VALID_INVITATION_CODES.includes(code)) {
+            VALID_INVITATION_CODES.push(code);
+            console.log(`Invitation code "${code}" added successfully`);
+            return true;
+        } else {
+            console.log(`Invitation code "${code}" already exists`);
+            return false;
+        }
+    }
+    console.error('Invalid invitation code format');
+    return false;
+}
+
+/**
+ * Remove an invitation code (for administrator use)
+ */
+function removeInvitationCode(codeToRemove) {
+    const code = codeToRemove.trim().toUpperCase();
+    const index = VALID_INVITATION_CODES.indexOf(code);
+    if (index > -1) {
+        VALID_INVITATION_CODES.splice(index, 1);
+        console.log(`Invitation code "${code}" removed successfully`);
+        return true;
+    } else {
+        console.log(`Invitation code "${code}" not found`);
+        return false;
     }
 }
 
@@ -2396,4 +2506,71 @@ function clearTestUsers() {
     } catch (error) {
         console.error('Error clearing test users:', error);
     }
+}
+
+// Handle access code validation
+if (validateAccessCodeBtn) {
+    validateAccessCodeBtn.addEventListener('click', function() {
+        const code = sanitizeInput(invitationCode.value);
+        testUserError.textContent = '';
+        if (!code) {
+            testUserError.textContent = 'Please enter an access code.';
+            return;
+        }
+        if (!VALID_INVITATION_CODES.includes(code.toUpperCase())) {
+            testUserError.textContent = 'Invalid access code. Please contact the administrator for a valid code.';
+            return;
+        }
+        // Valid code: show email input, hide code input/button
+        accessCodeGroup.style.display = 'none';
+        testUserEmailGroup.style.display = 'block';
+        testUserError.textContent = '';
+    });
+}
+
+// Handle test user creation (email only)
+if (testUserForm) {
+    testUserForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const code = sanitizeInput(invitationCode.value);
+        const email = sanitizeInput(testUserEmail.value);
+        testUserError.textContent = '';
+        if (!code || !VALID_INVITATION_CODES.includes(code.toUpperCase())) {
+            testUserError.textContent = 'Invalid or missing access code.';
+            return;
+        }
+        if (!isValidEmail(email)) {
+            testUserError.textContent = 'Please enter a valid email address.';
+            return;
+        }
+        try {
+            const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
+            if (existingUsers.find(user => user.email === email)) {
+                testUserError.textContent = 'A user with this email already exists.';
+                return;
+            }
+            // Create test user (no password)
+            const testUser = {
+                id: Date.now(),
+                email: email,
+                createdAt: new Date().toISOString(),
+                isTestUser: true,
+                invitationCode: code.toUpperCase()
+            };
+            existingUsers.push(testUser);
+            localStorage.setItem('users', JSON.stringify(existingUsers));
+            testUserForm.reset();
+            accessCodeGroup.style.display = 'block';
+            testUserEmailGroup.style.display = 'none';
+            testUserError.style.color = '#48bb78';
+            testUserError.textContent = `Test user created successfully! Email: ${email}`;
+            setTimeout(() => {
+                testUserError.textContent = '';
+                testUserError.style.color = '#e53e3e';
+            }, 5000);
+        } catch (error) {
+            console.error('Error creating test user:', error);
+            testUserError.textContent = 'An error occurred while creating the test user. Please try again.';
+        }
+    });
 } 

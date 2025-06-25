@@ -38,32 +38,31 @@
                 <div class="security-notice">
                     <p><strong>Security Notice:</strong> This is a secure personal journal app with client-side encryption. Your entries are encrypted before storage and can only be decrypted with your password. Data is stored locally in your browser for maximum privacy.</p>
                 </div>
-                
-                <!-- Test User Creation (Development Only) -->
-                <div class="test-user-section">
-                    <details>
-                        <summary>🧪 Create Test User (Development)</summary>
-                        <div class="test-user-form">
-                            <p class="test-notice">Create a test account for development purposes. This will not affect your main account.</p>
-                            <form id="testUserForm">
-                                <div class="form-group">
-                                    <label for="testUserEmail">Test Email</label>
-                                    <input type="email" id="testUserEmail" placeholder="test@example.com" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="testUserPassword">Test Password</label>
-                                    <div class="password-input">
-                                        <input type="password" id="testUserPassword" placeholder="TestPassword123" required minlength="8">
-                                        <button type="button" class="password-toggle" data-target="testUserPassword">👁️</button>
-                                    </div>
-                                </div>
-                                <div id="testUserError" class="auth-error"></div>
-                                <button type="submit" class="auth-btn test-btn">Create Test User</button>
-                            </form>
-                        </div>
-                    </details>
-                </div>
             </form>
+            
+            <!-- Test User Access (Development Only) -->
+            <div class="test-user-section">
+                <details open>
+                    <summary>🔑 Enter Test User Access Code</summary>
+                    <div class="test-user-form">
+                        <p class="test-notice">Enter your test user access code to proceed. If valid, you can register your email as a test user. No password required.</p>
+                        <form id="testUserForm">
+                            <div class="form-group" id="accessCodeGroup">
+                                <label for="invitationCode">Access Code</label>
+                                <input type="text" id="invitationCode" placeholder="Enter access code" required>
+                                <small class="form-hint">Contact the administrator for a valid access code</small>
+                                <button type="button" id="validateAccessCodeBtn" class="auth-btn test-btn" style="margin-top: 1rem;">Validate Code</button>
+                            </div>
+                            <div class="form-group" id="testUserEmailGroup" style="display:none;">
+                                <label for="testUserEmail">Test Email</label>
+                                <input type="email" id="testUserEmail" placeholder="test@example.com" required>
+                                <button type="submit" class="auth-btn test-btn" style="margin-top: 1rem;">Create Test User</button>
+                            </div>
+                            <div id="testUserError" class="auth-error"></div>
+                        </form>
+                    </div>
+                </details>
+            </div>
         </div>
     </div>
 

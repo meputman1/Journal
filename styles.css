@@ -877,12 +877,32 @@ main {
 
 .auth-container {
     background: white;
-    border-radius: 15px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-    padding: 40px;
-    max-width: 400px;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     width: 100%;
-    text-align: center;
+    max-width: 400px;
+    max-height: 90vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #ddd transparent;
+}
+
+.auth-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.auth-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.auth-container::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 3px;
+}
+
+.auth-container::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
 }
 
 .auth-header h1 {
@@ -1510,4 +1530,12 @@ main {
 
 .test-btn:hover {
     background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%) !important;
+}
+
+.form-hint {
+    font-size: 0.75rem;
+    color: #718096;
+    margin-top: 0.25rem;
+    display: block;
+    font-style: italic;
 } 
