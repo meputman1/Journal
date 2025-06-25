@@ -31,6 +31,99 @@ const privacyLockedMessage = document.getElementById('privacyLockedMessage');
 let privacyMode = sessionStorage.getItem('privacyMode') === 'true';
 let privacyPin = sessionStorage.getItem('privacyPin') || null;
 
+// Security: Add salt for password hashing
+const PASSWORD_SALT = 'journal_app_salt_2024';
+
+// Rate limiting for login attempts
+const loginAttempts = new Map();
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
+
+// Improved password validation
+function isValidPassword(password) {
+    // At least 8 characters, with at least one uppercase, one lowercase, one number
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
+    return passwordRegex.test(password);
+}
+
+// Rate limiting function
+function isRateLimited(email) {
+    const attempts = loginAttempts.get(email);
+    if (!attempts) return false;
+    
+    if (attempts.count >= MAX_LOGIN_ATTEMPTS) {
+        const timeSinceFirstAttempt = Date.now() - attempts.firstAttempt;
+        if (timeSinceFirstAttempt < LOCKOUT_DURATION) {
+            return true;
+        } else {
+            // Reset after lockout period
+            loginAttempts.delete(email);
+            return false;
+        }
+    }
+    return false;
+}
+
+// Record login attempt
+function recordLoginAttempt(email, success) {
+    if (success) {
+        loginAttempts.delete(email);
+        return;
+    }
+    
+    const attempts = loginAttempts.get(email) || { count: 0, firstAttempt: Date.now() };
+    attempts.count++;
+    loginAttempts.set(email, attempts);
+}
+
+// Simple SHA-256 hashing function (for demo purposes - in production, use a proper crypto library)
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password + PASSWORD_SALT);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Input sanitization function
+function sanitizeInput(input) {
+    if (typeof input !== 'string') return '';
+    return input.trim().replace(/[<>]/g, '');
+}
+
+// Session management
+function createSession(user) {
+    const session = {
+        userId: user.id,
+        email: user.email,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+    };
+    sessionStorage.setItem('session', JSON.stringify(session));
+    return session;
+}
+
+function getSession() {
+    const sessionData = sessionStorage.getItem('session');
+    if (!sessionData) return null;
+    
+    try {
+        const session = JSON.parse(sessionData);
+        if (new Date(session.expiresAt) < new Date()) {
+            sessionStorage.removeItem('session');
+            return null;
+        }
+        return session;
+    } catch (error) {
+        sessionStorage.removeItem('session');
+        return null;
+    }
+}
+
+function clearSession() {
+    sessionStorage.removeItem('session');
+}
+
 // DOM elements
 const journalForm = document.getElementById('journalForm');
 const entryText = document.getElementById('entryText');
@@ -108,8 +201,35 @@ const comparisonToggle = document.getElementById('comparisonToggle');
 const moodChartLegend = document.getElementById('moodChartLegend');
 const tagChartLegend = document.getElementById('tagChartLegend');
 
+// Password migration function for existing users
+async function migratePasswords() {
+    try {
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        let hasChanges = false;
+        
+        for (let user of users) {
+            // Check if password is not hashed (plain text passwords are typically shorter than 64 chars)
+            if (user.password && user.password.length < 64) {
+                console.log('Migrating password for user:', user.email);
+                user.password = await hashPassword(user.password);
+                hasChanges = true;
+            }
+        }
+        
+        if (hasChanges) {
+            localStorage.setItem('users', JSON.stringify(users));
+            console.log('Password migration completed');
+        }
+    } catch (error) {
+        console.error('Error during password migration:', error);
+    }
+}
+
 // Initialize the app when the page loads
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // Migrate existing passwords first
+    await migratePasswords();
+    
     checkAuthState();
     setupAuthEventListeners();
     setupEventListeners();
@@ -125,21 +245,33 @@ function checkAuthState() {
         return;
     }
     
-    const savedUser = localStorage.getItem('currentUser');
-    console.log('checkAuthState: savedUser from localStorage:', savedUser);
+    // Check for valid session
+    const session = getSession();
+    console.log('checkAuthState: session from sessionStorage:', session);
     
-    if (savedUser) {
+    if (session) {
         try {
-            currentUser = JSON.parse(savedUser);
-            isAuthenticated = true;
-            console.log('checkAuthState: User loaded from localStorage:', currentUser);
-            showMainApp();
+            // Verify user still exists in localStorage
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.id === session.userId);
+            
+            if (user) {
+                currentUser = { id: user.id, email: user.email };
+                isAuthenticated = true;
+                console.log('checkAuthState: User loaded from session:', currentUser);
+                showMainApp();
+            } else {
+                console.log('checkAuthState: User not found in localStorage, clearing session');
+                clearSession();
+                showAuthOverlay();
+            }
         } catch (error) {
-            console.error('Error parsing saved user:', error);
-            logout();
+            console.error('Error checking auth state:', error);
+            clearSession();
+            showAuthOverlay();
         }
     } else {
-        console.log('checkAuthState: No saved user found, showing auth overlay');
+        console.log('checkAuthState: No valid session found, showing auth overlay');
         showAuthOverlay();
     }
 }
@@ -254,20 +386,13 @@ function isValidEmail(email) {
 }
 
 /**
- * Validate password strength
- */
-function isValidPassword(password) {
-    return password.length >= 6;
-}
-
-/**
  * Handle sign up form submission
  */
-function handleSignUp(event) {
+async function handleSignUp(event) {
     event.preventDefault();
     clearAuthErrors();
     
-    const email = signUpEmail.value.trim();
+    const email = sanitizeInput(signUpEmail.value);
     const password = signUpPassword.value;
     const confirm = confirmPassword.value;
     
@@ -278,7 +403,7 @@ function handleSignUp(event) {
     }
     
     if (!isValidPassword(password)) {
-        signUpError.textContent = 'Password must be at least 6 characters long.';
+        signUpError.textContent = 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number.';
         return;
     }
     
@@ -287,44 +412,58 @@ function handleSignUp(event) {
         return;
     }
     
-    // Check if user already exists
-    const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
-    if (existingUsers.find(user => user.email === email)) {
-        signUpError.textContent = 'An account with this email already exists.';
-        return;
+    try {
+        // Hash the password
+        const hashedPassword = await hashPassword(password);
+        
+        // Check if user already exists
+        const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
+        if (existingUsers.find(user => user.email === email)) {
+            signUpError.textContent = 'An account with this email already exists.';
+            return;
+        }
+        
+        // Create new user
+        const newUser = {
+            id: Date.now(),
+            email: email,
+            password: hashedPassword, // Store hashed password
+            createdAt: new Date().toISOString()
+        };
+        
+        // Save user
+        existingUsers.push(newUser);
+        localStorage.setItem('users', JSON.stringify(existingUsers));
+        
+        // Create session and log in the new user
+        const session = createSession(newUser);
+        currentUser = { id: newUser.id, email: newUser.email };
+        console.log('New user created and logged in:', currentUser);
+        isAuthenticated = true;
+        
+        showMainApp();
+        showSuccessMessage('Account created successfully!');
+    } catch (error) {
+        console.error('Error during sign up:', error);
+        signUpError.textContent = 'An error occurred during sign up. Please try again.';
     }
-    
-    // Create new user
-    const newUser = {
-        id: Date.now(),
-        email: email,
-        password: password, // In a real app, this should be hashed
-        createdAt: new Date().toISOString()
-    };
-    
-    // Save user
-    existingUsers.push(newUser);
-    localStorage.setItem('users', JSON.stringify(existingUsers));
-    
-    // Log in the new user
-    currentUser = { id: newUser.id, email: newUser.email };
-    console.log('New user created and logged in:', currentUser);
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    isAuthenticated = true;
-    
-    showMainApp();
-    showSuccessMessage('Account created successfully!');
 }
 
 /**
  * Handle login form submission
  */
-function handleLogin(event) {
+async function handleLogin(event) {
     event.preventDefault();
     clearAuthErrors();
     
-    const email = loginEmail.value.trim();
+    const email = sanitizeInput(loginEmail.value);
     const password = loginPassword.value;
+    
+    // Check rate limiting
+    if (isRateLimited(email)) {
+        loginError.textContent = 'Too many failed login attempts. Please try again in 15 minutes.';
+        return;
+    }
     
     // Validation
     if (!isValidEmail(email)) {
@@ -337,23 +476,52 @@ function handleLogin(event) {
         return;
     }
     
-    // Check credentials
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const user = users.find(u => u.email === email && u.password === password);
-    
-    if (!user) {
-        loginError.textContent = 'Invalid email or password.';
-        return;
+    try {
+        // Hash the password for comparison
+        const hashedPassword = await hashPassword(password);
+        
+        // Check credentials
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const user = users.find(u => u.email === email && u.password === hashedPassword);
+        
+        if (!user) {
+            recordLoginAttempt(email, false);
+            loginError.textContent = 'Invalid email or password.';
+            return;
+        }
+        
+        // Successful login
+        recordLoginAttempt(email, true);
+        
+        // Create session and log in user
+        const session = createSession(user);
+        currentUser = { id: user.id, email: user.email };
+        console.log('User logged in:', currentUser);
+        isAuthenticated = true;
+        
+        showMainApp();
+        showSuccessMessage('Welcome back!');
+    } catch (error) {
+        console.error('Error during login:', error);
+        loginError.textContent = 'An error occurred during login. Please try again.';
     }
+}
+
+// Clear sensitive data function
+function clearSensitiveData() {
+    // Clear all form inputs
+    if (signUpForm) signUpForm.reset();
+    if (loginForm) loginForm.reset();
     
-    // Log in user
-    currentUser = { id: user.id, email: user.email };
-    console.log('User logged in:', currentUser);
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    isAuthenticated = true;
+    // Clear any sensitive variables
+    selectedMood = '';
+    selectedTags = [];
     
-    showMainApp();
-    showSuccessMessage('Welcome back!');
+    // Clear any cached data
+    if (typeof window !== 'undefined') {
+        // Clear any other sensitive data that might be cached
+        sessionStorage.removeItem('tempData');
+    }
 }
 
 /**
@@ -362,15 +530,14 @@ function handleLogin(event) {
 function logout() {
     currentUser = null;
     isAuthenticated = false;
-    localStorage.removeItem('currentUser');
+    clearSession(); // Clear session instead of localStorage
     sessionStorage.removeItem('privacyMode');
     sessionStorage.removeItem('privacyPin');
     
-    showAuthOverlay();
+    // Clear sensitive data
+    clearSensitiveData();
     
-    // Clear forms
-    signUpForm.reset();
-    loginForm.reset();
+    showAuthOverlay();
     clearAuthErrors();
 }
 
@@ -548,45 +715,50 @@ function handleTagFilterSelection(event) {
 function handleFormSubmit(event) {
     event.preventDefault();
     
-    const text = entryText.value.trim();
+    const text = sanitizeInput(entryText.value);
     const mood = selectedMood;
+    const tags = selectedTags;
     
-    if (!text) {
-        alert('Please write something in your journal entry!');
+    if (!text.trim()) {
+        showSuccessMessage('Please enter some text for your journal entry.');
         return;
     }
+    
     if (!mood) {
-        alert('Please select your mood!');
+        showSuccessMessage('Please select a mood for your entry.');
         return;
     }
     
-    const newEntry = {
+    const entry = {
         id: Date.now(),
         text: text,
         mood: mood,
-        tags: [...selectedTags], // Copy the array
+        tags: tags,
         date: new Date().toISOString(),
         dateString: new Date().toISOString().split('T')[0]
     };
     
-    journalEntries.unshift(newEntry);
+    journalEntries.unshift(entry);
     saveEntries();
-    
-    renderCalendar();
-    filterEntries(); 
-    updateCharts();
-    
-    showSuccessMessage('Journal entry saved successfully!');
     
     // Reset form
     journalForm.reset();
-    moodButtons.forEach(btn => btn.classList.remove('selected'));
     selectedMood = '';
-    selectedMoodInput.value = '';
     selectedTags = [];
-    updateSelectedTagsDisplay();
-    updateSelectedTagsInput();
+    selectedMoodInput.value = '';
+    selectedTagsInput.value = '';
+    selectedTagsContainer.innerHTML = '';
+    
+    // Reset mood and tag button states
+    moodButtons.forEach(btn => btn.classList.remove('selected'));
     tagButtons.forEach(btn => btn.classList.remove('selected'));
+    
+    // Update display
+    displayEntries();
+    renderCalendar();
+    updateCharts();
+    
+    showSuccessMessage('Journal entry saved successfully!');
 }
 
 /**

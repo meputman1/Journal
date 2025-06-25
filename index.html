@@ -25,20 +25,24 @@
                 <div class="form-group">
                     <label for="signUpPassword">Password</label>
                     <div class="password-input">
-                        <input type="password" id="signUpPassword" required minlength="6">
+                        <input type="password" id="signUpPassword" required minlength="8">
                         <button type="button" class="password-toggle" onclick="togglePassword('signUpPassword')">👁️</button>
                     </div>
+                    <small class="password-hint">Password must be at least 8 characters with uppercase, lowercase, and number</small>
                 </div>
                 <div class="form-group">
                     <label for="confirmPassword">Confirm Password</label>
                     <div class="password-input">
-                        <input type="password" id="confirmPassword" required minlength="6">
+                        <input type="password" id="confirmPassword" required minlength="8">
                         <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">👁️</button>
                     </div>
                 </div>
                 <div id="signUpError" class="auth-error"></div>
                 <button type="submit" class="auth-btn">Sign Up</button>
                 <p class="auth-switch">Already have an account? <a href="#" onclick="switchAuthView('login')">Log In</a></p>
+                <div class="security-notice">
+                    <p><strong>Security Notice:</strong> This is a demo app. Data is stored locally in your browser. For production use, consider a secure backend with proper encryption.</p>
+                </div>
             </form>
             
             <!-- Login Form -->
