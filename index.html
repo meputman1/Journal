@@ -245,10 +245,26 @@
                         <p>No journal entries yet. Start writing to see them here!</p>
                     </div>
                 </section>
+
+                <!-- Journal Trends Section -->
+                <section class="trends-section">
+                    <h2>📊 Journal Trends</h2>
+                    <div class="trends-container">
+                        <div class="trend-chart">
+                            <h3>Mood Trends</h3>
+                            <canvas id="moodTrendsChart"></canvas>
+                        </div>
+                        <div class="trend-chart">
+                            <h3>Tag Frequency</h3>
+                            <canvas id="tagFrequencyChart"></canvas>
+                        </div>
+                    </div>
+                </section>
             </main>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js?v=1.2"></script>
 </body>
 </html> 

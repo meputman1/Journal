@@ -1066,4 +1066,67 @@ main {
     .user-info {
         align-items: center;
     }
+}
+
+/* Journal Trends Section */
+.trends-section {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.trends-section h2 {
+    color: #4a5568;
+    margin-bottom: 25px;
+    font-size: 1.5rem;
+}
+
+.trends-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+.trend-chart {
+    background: #f7f9fc;
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+.trend-chart h3 {
+    color: #4a5568;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.trend-chart canvas {
+    max-height: 300px;
+    width: 100% !important;
+}
+
+/* Responsive design for trends */
+@media (max-width: 1024px) {
+    .trends-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .trends-section {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .trend-chart {
+        padding: 15px;
+    }
+    
+    .trend-chart canvas {
+        max-height: 250px;
+    }
 } 
