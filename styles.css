@@ -56,19 +56,6 @@ main {
 }
 
 .entry-form {
-    grid-area: form;
-    color: #718096;
-}
-
-.entries-section {
-    grid-area: entries;
-}
-
-/* Form & Entries Section Styling */
-.entry-form,
-.entries-section,
-.calendar-container,
-.search-filter-container {
     background: white;
     padding: 30px;
     border-radius: 15px;
@@ -81,109 +68,6 @@ main {
     font-size: 1.5rem;
 }
 
-/* Calendar Container */
-.calendar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.calendar-header h3 {
-    font-size: 1.2rem;
-    color: #4a5568;
-}
-
-.calendar-nav-btn {
-    background: none;
-    border: none;
-    font-size: 1.8rem;
-    cursor: pointer;
-    color: #667eea;
-    transition: color 0.3s;
-}
-
-.calendar-nav-btn:hover {
-    color: #764ba2;
-}
-
-/* Calendar Grid */
-.calendar-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.calendar-weekdays,
-.calendar-days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
-}
-
-.calendar-weekdays > div {
-    font-weight: bold;
-    text-align: center;
-    padding: 10px 0;
-}
-
-.calendar-days {
-    grid-auto-rows: 1fr; /* Make days fill the space */
-}
-
-.calendar-day {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
-    position: relative;
-    aspect-ratio: 1 / 1; /* Keep the days as squares */
-}
-
-.calendar-day:not(.other-month):hover {
-    background-color: #e9eafc;
-}
-
-.calendar-day.other-month {
-    color: #cbd5e0;
-    cursor: default;
-}
-
-.calendar-day.today {
-    background-color: #667eea;
-    color: white;
-    font-weight: bold;
-}
-
-.calendar-day.selected {
-    background-color: #764ba2;
-    color: white;
-}
-
-.calendar-day.has-entries::after {
-    content: '';
-    position: absolute;
-    bottom: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: #f56565;
-}
-
-.calendar-day.today.has-entries::after {
-    background-color: white;
-}
-
-.calendar-day.selected.has-entries::after {
-    background-color: #d1c4e9;
-}
-
-/* Form Group */
 .form-group {
     margin-bottom: 20px;
 }
@@ -244,9 +128,51 @@ main {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-/* Save Button */
+/* Custom tooltip styling */
+.mood-btn::before {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    margin-bottom: 8px;
+}
+
+.mood-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    margin-bottom: 3px;
+}
+
+.mood-btn:hover::before,
+.mood-btn:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
 .save-btn {
     width: 100%;
     padding: 15px;
@@ -265,7 +191,25 @@ main {
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
 
-/* Search and Filter */
+.save-btn:active {
+    transform: translateY(0);
+}
+
+/* Search section */
+.search-section {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    height: fit-content;
+}
+
+.search-section h2 {
+    color: #4a5568;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
 .search-controls {
     display: flex;
     flex-direction: column;
@@ -372,8 +316,8 @@ main {
     color: #718096;
 }
 
-/* Responsive Design */
-@media (max-width: 1200px) {
+/* Responsive design */
+@media (max-width: 768px) {
     main {
         grid-template-columns: 1fr;
         grid-template-areas:
