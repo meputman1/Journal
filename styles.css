@@ -964,13 +964,13 @@ main {
 }
 
 .security-notice {
-    background-color: #fef5e7;
-    border: 1px solid #f6ad55;
+    background-color: #f0fff4;
+    border: 1px solid #68d391;
     border-radius: 6px;
     padding: 12px;
     margin-top: 16px;
     font-size: 0.85rem;
-    color: #744210;
+    color: #22543d;
 }
 
 .security-notice p {
