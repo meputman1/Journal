@@ -1457,4 +1457,57 @@ main {
     line-height: 1.5;
 }
 
-/* Charts unavailable message */ 
+/* Test User Section */
+.test-user-section {
+    margin-top: 30px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 20px;
+}
+
+.test-user-section details {
+    border: 1px solid #f6ad55;
+    border-radius: 8px;
+    background: #fef5e7;
+}
+
+.test-user-section summary {
+    padding: 15px 20px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #744210;
+    background: #fed7aa;
+    border-radius: 8px 8px 0 0;
+    transition: background 0.2s;
+}
+
+.test-user-section summary:hover {
+    background: #fbbf24;
+}
+
+.test-user-section details[open] summary {
+    border-radius: 8px 8px 0 0;
+}
+
+.test-user-form {
+    padding: 20px;
+    background: #fef5e7;
+    border-radius: 0 0 8px 8px;
+}
+
+.test-notice {
+    color: #744210;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #fed7aa;
+    border-radius: 6px;
+    border-left: 4px solid #f6ad55;
+}
+
+.test-btn {
+    background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%) !important;
+}
+
+.test-btn:hover {
+    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%) !important;
+} 

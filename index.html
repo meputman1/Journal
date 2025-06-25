@@ -38,6 +38,31 @@
                 <div class="security-notice">
                     <p><strong>Security Notice:</strong> This is a personal journal app. Data is stored locally in your browser. For production use, consider a secure backend with proper encryption.</p>
                 </div>
+                
+                <!-- Test User Creation (Development Only) -->
+                <div class="test-user-section">
+                    <details>
+                        <summary>🧪 Create Test User (Development)</summary>
+                        <div class="test-user-form">
+                            <p class="test-notice">Create a test account for development purposes. This will not affect your main account.</p>
+                            <form id="testUserForm">
+                                <div class="form-group">
+                                    <label for="testUserEmail">Test Email</label>
+                                    <input type="email" id="testUserEmail" placeholder="test@example.com" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="testUserPassword">Test Password</label>
+                                    <div class="password-input">
+                                        <input type="password" id="testUserPassword" placeholder="TestPassword123" required minlength="8">
+                                        <button type="button" class="password-toggle" data-target="testUserPassword">👁️</button>
+                                    </div>
+                                </div>
+                                <div id="testUserError" class="auth-error"></div>
+                                <button type="submit" class="auth-btn test-btn">Create Test User</button>
+                            </form>
+                        </div>
+                    </details>
+                </div>
             </form>
         </div>
     </div>
@@ -360,6 +385,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=1.8"></script>
+    <script src="script.js?v=1.9"></script>
 </body>
 </html> 

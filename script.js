@@ -47,6 +47,12 @@ const closeChangePasswordModal = document.getElementById('closeChangePasswordMod
 const resetPasswordForm = document.getElementById('resetPasswordForm');
 const changePasswordForm = document.getElementById('changePasswordForm');
 
+// DOM elements for test user creation
+const testUserForm = document.getElementById('testUserForm');
+const testUserEmail = document.getElementById('testUserEmail');
+const testUserPassword = document.getElementById('testUserPassword');
+const testUserError = document.getElementById('testUserError');
+
 // Improved password validation
 function isValidPassword(password) {
     // At least 8 characters, with at least one uppercase, one lowercase, one number
@@ -588,6 +594,9 @@ function setupEventListeners() {
 
     // Setup password management event listeners
     setupPasswordManagementEventListeners();
+
+    // Setup test user creation event listeners
+    setupTestUserEventListeners();
 }
 
 /**
@@ -2277,5 +2286,114 @@ async function handleChangePassword(event) {
     } catch (error) {
         console.error('Error changing password:', error);
         errorElement.textContent = 'An error occurred while changing your password. Please try again.';
+    }
+}
+
+/**
+ * Setup test user creation event listeners
+ */
+function setupTestUserEventListeners() {
+    testUserForm.addEventListener('submit', handleTestUserCreation);
+}
+
+/**
+ * Handle test user creation
+ */
+async function handleTestUserCreation(event) {
+    event.preventDefault();
+    
+    const email = sanitizeInput(testUserEmail.value);
+    const password = testUserPassword.value;
+    
+    // Clear previous errors
+    testUserError.textContent = '';
+    
+    // Validation
+    if (!isValidEmail(email)) {
+        testUserError.textContent = 'Please enter a valid email address.';
+        return;
+    }
+    
+    if (!isValidPassword(password)) {
+        testUserError.textContent = 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number.';
+        return;
+    }
+    
+    try {
+        // Hash the password
+        const hashedPassword = await hashPassword(password);
+        
+        // Check if user already exists
+        const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
+        if (existingUsers.find(user => user.email === email)) {
+            testUserError.textContent = 'A user with this email already exists.';
+            return;
+        }
+        
+        // Create test user
+        const testUser = {
+            id: Date.now(),
+            email: email,
+            password: hashedPassword,
+            createdAt: new Date().toISOString(),
+            isTestUser: true // Mark as test user
+        };
+        
+        // Add to existing users
+        existingUsers.push(testUser);
+        localStorage.setItem('users', JSON.stringify(existingUsers));
+        
+        // Clear form
+        testUserForm.reset();
+        
+        // Show success message
+        testUserError.style.color = '#48bb78';
+        testUserError.textContent = `Test user created successfully! Email: ${email}`;
+        
+        // Clear success message after 5 seconds
+        setTimeout(() => {
+            testUserError.textContent = '';
+            testUserError.style.color = '#e53e3e';
+        }, 5000);
+        
+    } catch (error) {
+        console.error('Error creating test user:', error);
+        testUserError.textContent = 'An error occurred while creating the test user. Please try again.';
+    }
+}
+
+/**
+ * Display existing test users
+ */
+function displayTestUsers() {
+    try {
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const testUsers = users.filter(user => user.isTestUser);
+        
+        if (testUsers.length === 0) {
+            console.log('No test users found');
+            return;
+        }
+        
+        console.log('Existing test users:');
+        testUsers.forEach(user => {
+            console.log(`- Email: ${user.email} (ID: ${user.id})`);
+        });
+    } catch (error) {
+        console.error('Error displaying test users:', error);
+    }
+}
+
+/**
+ * Clear all test users (for cleanup)
+ */
+function clearTestUsers() {
+    try {
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const nonTestUsers = users.filter(user => !user.isTestUser);
+        localStorage.setItem('users', JSON.stringify(nonTestUsers));
+        console.log('All test users cleared');
+    } catch (error) {
+        console.error('Error clearing test users:', error);
     }
 } 
