@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Journal App</title>
+    <link rel="stylesheet" href="styles.css?v=1.3">
+</head>
+<body>
+    <!-- Authentication Overlay -->
+    <div id="authOverlay" class="auth-overlay">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1>📖 My Journal</h1>
+                <p>Sign in to access your personal journal</p>
+            </div>
+            
+            <!-- Sign Up Form -->
+            <form id="signUpForm" class="auth-form">
+                <h2>Create Account</h2>
+                <div class="form-group">
+                    <label for="signUpEmail">Email</label>
+                    <input type="email" id="signUpEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="signUpPassword">Password</label>
+                    <div class="password-input">
+                        <input type="password" id="signUpPassword" required minlength="8">
+                        <button type="button" class="password-toggle" onclick="togglePassword('signUpPassword')">👁️</button>
+                    </div>
+                    <small class="password-hint">Password must be at least 8 characters with uppercase, lowercase, and number</small>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <div class="password-input">
+                        <input type="password" id="confirmPassword" required minlength="8">
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">👁️</button>
+                    </div>
+                </div>
+                <div id="signUpError" class="auth-error"></div>
+                <button type="submit" class="auth-btn">Sign Up</button>
+                <p class="auth-switch">Already have an account? <a href="#" onclick="switchAuthView('login')">Log In</a></p>
+                <div class="security-notice">
+                    <p><strong>Security Notice:</strong> This is a demo app. Data is stored locally in your browser. For production use, consider a secure backend with proper encryption.</p>
+                </div>
+            </form>
+            
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form" style="display: none;">
+                <h2>Welcome Back</h2>
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <div class="password-input">
+                        <input type="password" id="loginPassword" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">👁️</button>
+                    </div>
+                </div>
+                <div id="loginError" class="auth-error"></div>
+                <button type="submit" class="auth-btn">Log In</button>
+                <p class="auth-switch">Don't have an account? <a href="#" onclick="switchAuthView('signup')">Sign Up</a></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App (hidden when not authenticated) -->
+    <div id="mainApp" class="main-app" style="display: none;">
+        <div class="container">
+            <header>
+                <div class="header-content">
+                    <div>
+                        <h1>📖 My Journal</h1>
+                        <p>Write your thoughts and feelings</p>
+                    </div>
+                    <div class="user-info">
+                        <span id="userEmail" class="user-email"></span>
+                        <button id="logoutBtn" class="logout-btn">Logout</button>
+                    </div>
+                </div>
+                <button id="privacyModeToggle" class="privacy-toggle" aria-pressed="false">🔒 Privacy Mode</button>
+            </header>
+
+            <main>
+                <!-- Calendar and Search Section (Left Side) -->
+                <section class="calendar-search-section">
+                    <!-- Calendar View -->
+                    <div class="calendar-container">
+                        <h2>📅 Calendar View</h2>
+                        <div class="calendar-header">
+                            <button id="prevMonth" class="calendar-nav-btn">‹</button>
+                            <select id="monthSelect" class="calendar-select"></select>
+                            <select id="yearSelect" class="calendar-select"></select>
+                            <button id="nextMonth" class="calendar-nav-btn">›</button>
+                        </div>
+                        <div class="calendar-grid">
+                            <div class="calendar-loading" id="calendarLoading">Loading...</div>
+                            <div class="calendar-weekdays">
+                                <div>Sun</div>
+                                <div>Mon</div>
+                                <div>Tue</div>
+                                <div>Wed</div>
+                                <div>Thu</div>
+                                <div>Fri</div>
+                                <div>Sat</div>
+                            </div>
+                            <div id="calendarDays" class="calendar-days">
+                                <!-- Calendar days will be generated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search and Filter Controls -->
+                    <div class="search-filter-container">
+                        <h2>🔍 Search & Filter</h2>
+                        <div class="search-controls">
+                            <input 
+                                type="text" 
+                                id="searchInput" 
+                                placeholder="Search entries..."
+                                class="search-input"
+                            >
+                            <div class="mood-filter-buttons">
+                                <button type="button" class="filter-btn active" data-mood="" title="All Entries">All</button>
+                                <button type="button" class="filter-btn" data-mood="happy" title="Happy">😊</button>
+                                <button type="button" class="filter-btn" data-mood="sad" title="Sad">😢</button>
+                                <button type="button" class="filter-btn" data-mood="excited" title="Excited">🤩</button>
+                                <button type="button" class="filter-btn" data-mood="anxious" title="Anxious">😰</button>
+                                <button type="button" class="filter-btn" data-mood="grateful" title="Grateful">🙏</button>
+                                <button type="button" class="filter-btn" data-mood="numb" title="Numb">😶‍🌫️</button>
+                                <button type="button" class="filter-btn" data-mood="angry" title="Angry">😡</button>
+                                <button type="button" class="filter-btn" data-mood="motivated" title="Motivated">💪</button>
+                                <button type="button" class="filter-btn" data-mood="loved" title="Loved">🥰</button>
+                                <button type="button" class="filter-btn" data-mood="overwhelmed" title="Overwhelmed">😵‍💫</button>
+                                <button type="button" class="filter-btn" data-mood="lonely" title="Lonely">🥲</button>
+                                <button type="button" class="filter-btn" data-mood="bored" title="Bored">🥱</button>
+                                <button type="button" class="filter-btn" data-mood="sick" title="Sick">🤒</button>
+                                <button type="button" class="filter-btn" data-mood="disappointed" title="Disappointed">😞</button>
+                                <button type="button" class="filter-btn" data-mood="frustrated" title="Frustrated">😤</button>
+                                <button type="button" class="filter-btn" data-mood="content" title="Content">🙂</button>
+                                <button type="button" class="filter-btn" data-mood="focused" title="Focused">🧐</button>
+                                <button type="button" class="filter-btn" data-mood="stressed" title="Stressed">😫</button>
+                                <button type="button" class="filter-btn" data-mood="creative" title="Creative">🎨</button>
+                            </div>
+                            
+                            <div class="filter-section">
+                                <label>Filter by tags:</label>
+                                <div class="tag-filter-buttons">
+                                    <button type="button" class="tag-filter-btn active" data-tag="" title="All Tags">All</button>
+                                    <button type="button" class="tag-filter-btn" data-tag="work" title="Work">#work</button>
+                                    <button type="button" class="tag-filter-btn" data-tag="relationships" title="Relationships">#relationships</button>
+                                    <button type="button" class="tag-filter-btn" data-tag="dreams" title="Dreams">#dreams</button>
+                                    <button type="button" class="tag-filter-btn" data-tag="goals" title="Goals">#goals</button>
+                                    <button type="button" class="tag-filter-btn" data-tag="therapy" title="Therapy">#therapy</button>
+                                    <button type="button" class="tag-filter-btn" data-tag="health" title="Health">#health</button>
+                                    <button type="button" class="tag-filter-btn" data-tag="travel" title="Travel">#travel</button>
+                                    <button type="button" class="tag-filter-btn" data-tag="family" title="Family">#family</button>
+                                    <button type="button" class="tag-filter-btn" data-tag="friends" title="Friends">#friends</button>
+                                    <button type="button" class="tag-filter-btn" data-tag="hobbies" title="Hobbies">#hobbies</button>
+                                    <button type="button" class="tag-filter-btn" data-tag="gratitude" title="Gratitude">#gratitude</button>
+                                    <button type="button" class="tag-filter-btn" data-tag="reflection" title="Reflection">#reflection</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Journal Entry Form (Right Side) -->
+                <section class="entry-form">
+                    <h2>New Entry</h2>
+                    <form id="journalForm">
+                        <div class="form-group">
+                            <label for="entryText">What's on your mind?</label>
+                            <textarea 
+                                id="entryText" 
+                                placeholder="Write your journal entry here..."
+                                required
+                            ></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>How are you feeling?</label>
+                            <div class="mood-buttons">
+                                <button type="button" class="mood-btn" data-mood="happy" title="Happy">😊</button>
+                                <button type="button" class="mood-btn" data-mood="sad" title="Sad">😢</button>
+                                <button type="button" class="mood-btn" data-mood="excited" title="Excited">🤩</button>
+                                <button type="button" class="mood-btn" data-mood="anxious" title="Anxious">😰</button>
+                                <button type="button" class="mood-btn" data-mood="grateful" title="Grateful">🙏</button>
+                                <button type="button" class="mood-btn" data-mood="numb" title="Numb">😶‍🌫️</button>
+                                <button type="button" class="mood-btn" data-mood="angry" title="Angry">😡</button>
+                                <button type="button" class="mood-btn" data-mood="motivated" title="Motivated">💪</button>
+                                <button type="button" class="mood-btn" data-mood="loved" title="Loved">🥰</button>
+                                <button type="button" class="mood-btn" data-mood="overwhelmed" title="Overwhelmed">😵‍💫</button>
+                                <button type="button" class="mood-btn" data-mood="lonely" title="Lonely">🥲</button>
+                                <button type="button" class="mood-btn" data-mood="bored" title="Bored">🥱</button>
+                                <button type="button" class="mood-btn" data-mood="sick" title="Sick">🤒</button>
+                                <button type="button" class="mood-btn" data-mood="disappointed" title="Disappointed">😞</button>
+                                <button type="button" class="mood-btn" data-mood="frustrated" title="Frustrated">😤</button>
+                                <button type="button" class="mood-btn" data-mood="content" title="Content">🙂</button>
+                                <button type="button" class="mood-btn" data-mood="focused" title="Focused">🧐</button>
+                                <button type="button" class="mood-btn" data-mood="stressed" title="Stressed">😫</button>
+                                <button type="button" class="mood-btn" data-mood="creative" title="Creative">🎨</button>
+                            </div>
+                            <input type="hidden" id="selectedMood" value="">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Add tags to your entry</label>
+                            <div class="tag-buttons">
+                                <button type="button" class="tag-btn" data-tag="work" title="Work">#work</button>
+                                <button type="button" class="tag-btn" data-tag="relationships" title="Relationships">#relationships</button>
+                                <button type="button" class="tag-btn" data-tag="dreams" title="Dreams">#dreams</button>
+                                <button type="button" class="tag-btn" data-tag="goals" title="Goals">#goals</button>
+                                <button type="button" class="tag-btn" data-tag="therapy" title="Therapy">#therapy</button>
+                                <button type="button" class="tag-btn" data-tag="health" title="Health">#health</button>
+                                <button type="button" class="tag-btn" data-tag="travel" title="Travel">#travel</button>
+                                <button type="button" class="tag-btn" data-tag="family" title="Family">#family</button>
+                                <button type="button" class="tag-btn" data-tag="friends" title="Friends">#friends</button>
+                                <button type="button" class="tag-btn" data-tag="hobbies" title="Hobbies">#hobbies</button>
+                                <button type="button" class="tag-btn" data-tag="gratitude" title="Gratitude">#gratitude</button>
+                                <button type="button" class="tag-btn" data-tag="reflection" title="Reflection">#reflection</button>
+                            </div>
+                            <div class="custom-tag-input">
+                                <input type="text" id="customTagInput" placeholder="Add custom tag..." maxlength="20">
+                                <button type="button" id="addCustomTag" class="add-tag-btn">+</button>
+                            </div>
+                            <div id="selectedTags" class="selected-tags">
+                                <!-- Selected tags will appear here as pills -->
+                            </div>
+                            <input type="hidden" id="selectedTagsInput" value="">
+                        </div>
+
+                        <button type="submit" class="save-btn">💾 Save Entry</button>
+                    </form>
+                </section>
+
+                <!-- Journal Entries Display (Bottom) -->
+                <section class="entries-section">
+                    <h2>📝 Your Entries</h2>
+                    <div id="privacyLockedMessage" class="privacy-locked-message" style="display:none;">
+                        <p>🔐 Entries hidden. Disable privacy mode to view.</p>
+                    </div>
+                    <div id="entriesContainer" class="entries-container">
+                        <!-- Entries will be dynamically added here -->
+                    </div>
+                    <div id="noEntries" class="no-entries">
+                        <p>No journal entries yet. Start writing to see them here!</p>
+                    </div>
+                </section>
+
+                <!-- Journal Trends Section -->
+                <section class="trends-section">
+                    <h2>📊 Journal Trends</h2>
+                    
+                    <!-- Trends Controls -->
+                    <div class="trends-controls">
+                        <div class="date-range-controls">
+                            <label for="dateRangeSelect">Time Range:</label>
+                            <select id="dateRangeSelect" class="trends-select">
+                                <option value="7">Last 7 days</option>
+                                <option value="30">Last 30 days</option>
+                                <option value="month" selected>This month</option>
+                                <option value="lastMonth">Last month</option>
+                                <option value="year">This year</option>
+                                <option value="custom">Custom range</option>
+                            </select>
+                        </div>
+                        
+                        <div class="custom-date-range" id="customDateRange" style="display: none;">
+                            <label for="startDate">From:</label>
+                            <input type="date" id="startDate" class="trends-date-input">
+                            <label for="endDate">To:</label>
+                            <input type="date" id="endDate" class="trends-date-input">
+                        </div>
+                        
+                        <div class="comparison-controls">
+                            <label class="comparison-toggle">
+                                <input type="checkbox" id="comparisonToggle">
+                                <span class="toggle-slider"></span>
+                                Compare with previous period
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="trends-container">
+                        <div class="trend-chart">
+                            <h3>Mood Trends</h3>
+                            <div class="chart-legend" id="moodChartLegend"></div>
+                            <canvas id="moodTrendsChart"></canvas>
+                        </div>
+                        <div class="trend-chart">
+                            <h3>Tag Frequency</h3>
+                            <div class="chart-legend" id="tagChartLegend"></div>
+                            <canvas id="tagFrequencyChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js?v=1.2"></script>
+</body>
+</html> 
