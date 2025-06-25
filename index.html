@@ -74,6 +74,25 @@
                             <button type="button" class="filter-btn" data-mood="stressed" title="Stressed">😫</button>
                             <button type="button" class="filter-btn" data-mood="creative" title="Creative">🎨</button>
                         </div>
+                        
+                        <div class="filter-section">
+                            <label>Filter by tags:</label>
+                            <div class="tag-filter-buttons">
+                                <button type="button" class="tag-filter-btn active" data-tag="" title="All Tags">All</button>
+                                <button type="button" class="tag-filter-btn" data-tag="work" title="Work">#work</button>
+                                <button type="button" class="tag-filter-btn" data-tag="relationships" title="Relationships">#relationships</button>
+                                <button type="button" class="tag-filter-btn" data-tag="dreams" title="Dreams">#dreams</button>
+                                <button type="button" class="tag-filter-btn" data-tag="goals" title="Goals">#goals</button>
+                                <button type="button" class="tag-filter-btn" data-tag="therapy" title="Therapy">#therapy</button>
+                                <button type="button" class="tag-filter-btn" data-tag="health" title="Health">#health</button>
+                                <button type="button" class="tag-filter-btn" data-tag="travel" title="Travel">#travel</button>
+                                <button type="button" class="tag-filter-btn" data-tag="family" title="Family">#family</button>
+                                <button type="button" class="tag-filter-btn" data-tag="friends" title="Friends">#friends</button>
+                                <button type="button" class="tag-filter-btn" data-tag="hobbies" title="Hobbies">#hobbies</button>
+                                <button type="button" class="tag-filter-btn" data-tag="gratitude" title="Gratitude">#gratitude</button>
+                                <button type="button" class="tag-filter-btn" data-tag="reflection" title="Reflection">#reflection</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -115,6 +134,32 @@
                             <button type="button" class="mood-btn" data-mood="creative" title="Creative">🎨</button>
                         </div>
                         <input type="hidden" id="selectedMood" value="">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Add tags to your entry</label>
+                        <div class="tag-buttons">
+                            <button type="button" class="tag-btn" data-tag="work" title="Work">#work</button>
+                            <button type="button" class="tag-btn" data-tag="relationships" title="Relationships">#relationships</button>
+                            <button type="button" class="tag-btn" data-tag="dreams" title="Dreams">#dreams</button>
+                            <button type="button" class="tag-btn" data-tag="goals" title="Goals">#goals</button>
+                            <button type="button" class="tag-btn" data-tag="therapy" title="Therapy">#therapy</button>
+                            <button type="button" class="tag-btn" data-tag="health" title="Health">#health</button>
+                            <button type="button" class="tag-btn" data-tag="travel" title="Travel">#travel</button>
+                            <button type="button" class="tag-btn" data-tag="family" title="Family">#family</button>
+                            <button type="button" class="tag-btn" data-tag="friends" title="Friends">#friends</button>
+                            <button type="button" class="tag-btn" data-tag="hobbies" title="Hobbies">#hobbies</button>
+                            <button type="button" class="tag-btn" data-tag="gratitude" title="Gratitude">#gratitude</button>
+                            <button type="button" class="tag-btn" data-tag="reflection" title="Reflection">#reflection</button>
+                        </div>
+                        <div class="custom-tag-input">
+                            <input type="text" id="customTagInput" placeholder="Add custom tag..." maxlength="20">
+                            <button type="button" id="addCustomTag" class="add-tag-btn">+</button>
+                        </div>
+                        <div id="selectedTags" class="selected-tags">
+                            <!-- Selected tags will appear here as pills -->
+                        </div>
+                        <input type="hidden" id="selectedTagsInput" value="">
                     </div>
 
                     <button type="submit" class="save-btn">💾 Save Entry</button>

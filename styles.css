@@ -599,4 +599,225 @@ main {
 .calendar-loading.active {
     opacity: 1;
     pointer-events: all;
+}
+
+/* Tag buttons styling */
+.tag-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.tag-btn {
+    padding: 8px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 20px;
+    background: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.tag-btn:hover {
+    border-color: #a3bffa;
+    background: #f7fafc;
+}
+
+.tag-btn.selected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+/* Custom tag input */
+.custom-tag-input {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
+    align-items: center;
+}
+
+.custom-tag-input input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: border-color 0.3s ease;
+}
+
+.custom-tag-input input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.add-tag-btn {
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    min-width: 40px;
+}
+
+.add-tag-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Selected tags display */
+.selected-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+    min-height: 20px;
+}
+
+.tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+}
+
+.tag-pill .remove-tag {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.2s ease;
+}
+
+.tag-pill .remove-tag:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Tag filter buttons */
+.filter-section {
+    margin-top: 20px;
+}
+
+.filter-section label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 0.95rem;
+}
+
+.tag-filter-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tag-filter-btn {
+    padding: 6px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    background: white;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.tag-filter-btn:hover {
+    border-color: #a3bffa;
+    background: #f7fafc;
+}
+
+.tag-filter-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+/* Responsive design for tags */
+@media (max-width: 768px) {
+    .tag-buttons, .tag-filter-buttons {
+        gap: 6px;
+    }
+    
+    .tag-btn, .tag-filter-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    
+    .custom-tag-input {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .add-tag-btn {
+        width: 100%;
+        padding: 10px;
+    }
+    
+    .tag-pill {
+        font-size: 0.8rem;
+        padding: 4px 10px;
+    }
+}
+
+/* Entry tags display */
+.entry-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.entry-tag {
+    display: inline-block;
+    padding: 4px 8px;
+    background: #e9eafc;
+    color: #667eea;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid #d1d5db;
+}
+
+.entry-tag:hover {
+    background: #d1d5db;
+    color: #4a5568;
+}
+
+@media (max-width: 768px) {
+    .entry-tags {
+        gap: 4px;
+        margin-top: 10px;
+    }
+    
+    .entry-tag {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+    }
 } 

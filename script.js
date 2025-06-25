@@ -4,6 +4,7 @@
 let journalEntries = [];
 const STORAGE_KEY = 'journalEntries';
 let selectedMood = '';
+let selectedTags = [];
 let currentDate = new Date();
 let selectedCalendarDate = null;
 let calendarDayElements = [];
@@ -12,11 +13,17 @@ let calendarDayElements = [];
 const journalForm = document.getElementById('journalForm');
 const entryText = document.getElementById('entryText');
 const selectedMoodInput = document.getElementById('selectedMood');
+const selectedTagsInput = document.getElementById('selectedTagsInput');
+const selectedTagsContainer = document.getElementById('selectedTags');
+const customTagInput = document.getElementById('customTagInput');
+const addCustomTagBtn = document.getElementById('addCustomTag');
 const entriesContainer = document.getElementById('entriesContainer');
 const noEntries = document.getElementById('noEntries');
 const searchInput = document.getElementById('searchInput');
 const moodButtons = document.querySelectorAll('.mood-btn');
 const filterButtons = document.querySelectorAll('.filter-btn');
+const tagButtons = document.querySelectorAll('.tag-btn');
+const tagFilterButtons = document.querySelectorAll('.tag-filter-btn');
 
 // Calendar elements
 const prevMonthBtn = document.getElementById('prevMonth');
@@ -49,6 +56,22 @@ function setupEventListeners() {
     
     filterButtons.forEach(button => {
         button.addEventListener('click', handleFilterSelection);
+    });
+    
+    tagButtons.forEach(button => {
+        button.addEventListener('click', handleTagSelection);
+    });
+    
+    tagFilterButtons.forEach(button => {
+        button.addEventListener('click', handleTagFilterSelection);
+    });
+    
+    addCustomTagBtn.addEventListener('click', handleCustomTagAdd);
+    customTagInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleCustomTagAdd();
+        }
     });
     
     searchInput.addEventListener('input', filterEntries);
@@ -87,6 +110,100 @@ function handleFilterSelection(event) {
 }
 
 /**
+ * Handles tag button selection in the form
+ */
+function handleTagSelection(event) {
+    const clickedButton = event.target.closest('.tag-btn');
+    if (!clickedButton) return;
+    
+    const tag = clickedButton.dataset.tag;
+    
+    if (selectedTags.includes(tag)) {
+        // Remove tag
+        selectedTags = selectedTags.filter(t => t !== tag);
+        clickedButton.classList.remove('selected');
+    } else {
+        // Add tag
+        selectedTags.push(tag);
+        clickedButton.classList.add('selected');
+    }
+    
+    updateSelectedTagsDisplay();
+    updateSelectedTagsInput();
+}
+
+/**
+ * Handles custom tag addition
+ */
+function handleCustomTagAdd() {
+    const customTag = customTagInput.value.trim().toLowerCase();
+    if (!customTag) return;
+    
+    // Remove # if user included it
+    const cleanTag = customTag.startsWith('#') ? customTag.slice(1) : customTag;
+    
+    if (!selectedTags.includes(cleanTag)) {
+        selectedTags.push(cleanTag);
+        updateSelectedTagsDisplay();
+        updateSelectedTagsInput();
+    }
+    
+    customTagInput.value = '';
+}
+
+/**
+ * Updates the visual display of selected tags
+ */
+function updateSelectedTagsDisplay() {
+    selectedTagsContainer.innerHTML = '';
+    selectedTags.forEach(tag => {
+        const tagPill = document.createElement('div');
+        tagPill.className = 'tag-pill';
+        tagPill.innerHTML = `
+            <span>#${tag}</span>
+            <button type="button" class="remove-tag" onclick="removeTag('${tag}')">×</button>
+        `;
+        selectedTagsContainer.appendChild(tagPill);
+    });
+}
+
+/**
+ * Updates the hidden input with selected tags
+ */
+function updateSelectedTagsInput() {
+    selectedTagsInput.value = JSON.stringify(selectedTags);
+}
+
+/**
+ * Removes a tag from selection
+ */
+function removeTag(tag) {
+    selectedTags = selectedTags.filter(t => t !== tag);
+    
+    // Update button state
+    const tagButton = document.querySelector(`.tag-btn[data-tag="${tag}"]`);
+    if (tagButton) {
+        tagButton.classList.remove('selected');
+    }
+    
+    updateSelectedTagsDisplay();
+    updateSelectedTagsInput();
+}
+
+/**
+ * Handles tag filter selection
+ */
+function handleTagFilterSelection(event) {
+    const clickedButton = event.target.closest('.tag-filter-btn');
+    if (!clickedButton) return;
+    
+    tagFilterButtons.forEach(btn => btn.classList.remove('active'));
+    clickedButton.classList.add('active');
+    
+    filterEntries();
+}
+
+/**
  * Handles the form submission
  */
 function handleFormSubmit(event) {
@@ -108,6 +225,7 @@ function handleFormSubmit(event) {
         id: Date.now(),
         text: text,
         mood: mood,
+        tags: [...selectedTags], // Copy the array
         date: new Date().toISOString(),
         dateString: new Date().toISOString().split('T')[0]
     };
@@ -120,10 +238,15 @@ function handleFormSubmit(event) {
     
     showSuccessMessage('Journal entry saved successfully!');
     
+    // Reset form
     journalForm.reset();
     moodButtons.forEach(btn => btn.classList.remove('selected'));
     selectedMood = '';
     selectedMoodInput.value = '';
+    selectedTags = [];
+    updateSelectedTagsDisplay();
+    updateSelectedTagsInput();
+    tagButtons.forEach(btn => btn.classList.remove('selected'));
 }
 
 /**
@@ -147,6 +270,10 @@ function loadEntries() {
             journalEntries = JSON.parse(savedEntries).map(entry => {
                 if (!entry.dateString) {
                     entry.dateString = new Date(entry.date).toISOString().split('T')[0];
+                }
+                // Ensure tags exist for older entries
+                if (!entry.tags) {
+                    entry.tags = [];
                 }
                 return entry;
             });
@@ -343,12 +470,23 @@ function createEntryCard(entry) {
     card.className = 'entry-card';
     const moodInfo = getMoodInfo(entry.mood);
     
+    // Create tags display
+    let tagsHtml = '';
+    if (entry.tags && entry.tags.length > 0) {
+        tagsHtml = '<div class="entry-tags">';
+        entry.tags.forEach(tag => {
+            tagsHtml += `<span class="entry-tag">#${tag}</span>`;
+        });
+        tagsHtml += '</div>';
+    }
+    
     card.innerHTML = `
         <div class="entry-header">
             <span class="entry-date">${formatDate(entry.date)}</span>
             <span class="entry-mood" title="${moodInfo.name}">${moodInfo.emoji}</span>
         </div>
         <div class="entry-text">${entry.text.replace(/\n/g, '<br>')}</div>
+        ${tagsHtml}
     `;
     return card;
 }
@@ -386,13 +524,27 @@ function filterEntries() {
     
     const searchTerm = searchInput.value.toLowerCase().trim();
     if (searchTerm) {
-        filtered = filtered.filter(entry => entry.text.toLowerCase().includes(searchTerm));
+        filtered = filtered.filter(entry => {
+            const textMatch = entry.text.toLowerCase().includes(searchTerm);
+            const tagMatch = entry.tags && entry.tags.some(tag => 
+                tag.toLowerCase().includes(searchTerm.replace('#', ''))
+            );
+            return textMatch || tagMatch;
+        });
     }
     
     const activeFilterButton = document.querySelector('.filter-btn.active');
     const moodFilter = activeFilterButton ? activeFilterButton.dataset.mood : '';
     if (moodFilter) {
         filtered = filtered.filter(entry => entry.mood === moodFilter);
+    }
+    
+    const activeTagFilterButton = document.querySelector('.tag-filter-btn.active');
+    const tagFilter = activeTagFilterButton ? activeTagFilterButton.dataset.tag : '';
+    if (tagFilter) {
+        filtered = filtered.filter(entry => 
+            entry.tags && entry.tags.includes(tagFilter)
+        );
     }
     
     if (selectedCalendarDate) {
