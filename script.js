@@ -2549,21 +2549,26 @@ if (testUserForm) {
                 testUserError.textContent = 'A user with this email already exists.';
                 return;
             }
-            // Create test user (no password)
+            // Create test user (no password), expires in 48 hours
+            const expiresAt = Date.now() + 48 * 60 * 60 * 1000;
             const testUser = {
                 id: Date.now(),
                 email: email,
                 createdAt: new Date().toISOString(),
                 isTestUser: true,
-                invitationCode: code.toUpperCase()
+                invitationCode: code.toUpperCase(),
+                expiresAt: expiresAt
             };
             existingUsers.push(testUser);
             localStorage.setItem('users', JSON.stringify(existingUsers));
             testUserForm.reset();
             accessCodeGroup.style.display = 'block';
             testUserEmailGroup.style.display = 'none';
+            // Auto-login the test user
+            createSession(testUser);
+            showMainApp();
             testUserError.style.color = '#48bb78';
-            testUserError.textContent = `Test user created successfully! Email: ${email}`;
+            testUserError.textContent = `Test user created and logged in! Email: ${email}`;
             setTimeout(() => {
                 testUserError.textContent = '';
                 testUserError.style.color = '#e53e3e';
@@ -2573,4 +2578,45 @@ if (testUserForm) {
             testUserError.textContent = 'An error occurred while creating the test user. Please try again.';
         }
     });
-} 
+}
+
+// Check for test user expiration on login and app load
+function isTestUserExpired(user) {
+    if (user && user.isTestUser && user.expiresAt) {
+        return Date.now() > user.expiresAt;
+    }
+    return false;
+}
+
+// Override checkAuthState to handle test user expiration
+const originalCheckAuthState = checkAuthState;
+checkAuthState = function() {
+    const session = getSession();
+    if (session) {
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const user = users.find(u => u.email === session.email);
+        if (user && isTestUserExpired(user)) {
+            clearSession();
+            showAuthOverlay();
+            loginError.textContent = 'Your test account has expired. Please request a new access code.';
+            return;
+        }
+    }
+    originalCheckAuthState();
+};
+
+// Also check on login
+const originalHandleLogin = handleLogin;
+handleLogin = async function(event) {
+    event.preventDefault();
+    const email = sanitizeInput(loginEmail.value);
+    // ... existing code ...
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const user = users.find(u => u.email === email);
+    if (user && isTestUserExpired(user)) {
+        loginError.textContent = 'Your test account has expired. Please request a new access code.';
+        return;
+    }
+    await originalHandleLogin.call(this, event);
+};
+// ... existing code ... 
