@@ -15,38 +15,8 @@
                 <p>Sign in to access your personal journal</p>
             </div>
             
-            <!-- Sign Up Form -->
-            <form id="signUpForm" class="auth-form">
-                <h2>Create Account</h2>
-                <div class="form-group">
-                    <label for="signUpEmail">Email</label>
-                    <input type="email" id="signUpEmail" required>
-                </div>
-                <div class="form-group">
-                    <label for="signUpPassword">Password</label>
-                    <div class="password-input">
-                        <input type="password" id="signUpPassword" required minlength="8">
-                        <button type="button" class="password-toggle" data-target="signUpPassword">👁️</button>
-                    </div>
-                    <small class="password-hint">Password must be at least 8 characters with uppercase, lowercase, and number</small>
-                </div>
-                <div class="form-group">
-                    <label for="confirmPassword">Confirm Password</label>
-                    <div class="password-input">
-                        <input type="password" id="confirmPassword" required minlength="8">
-                        <button type="button" class="password-toggle" data-target="confirmPassword">👁️</button>
-                    </div>
-                </div>
-                <div id="signUpError" class="auth-error"></div>
-                <button type="submit" class="auth-btn">Sign Up</button>
-                <p class="auth-switch">Already have an account? <a href="#" class="auth-switch-link" data-view="login">Log In</a></p>
-                <div class="security-notice">
-                    <p><strong>Security Notice:</strong> This is a demo app. Data is stored locally in your browser. For production use, consider a secure backend with proper encryption.</p>
-                </div>
-            </form>
-            
-            <!-- Login Form -->
-            <form id="loginForm" class="auth-form" style="display: none;">
+            <!-- Login Form (Only form shown for single-user access) -->
+            <form id="loginForm" class="auth-form">
                 <h2>Welcome Back</h2>
                 <div class="form-group">
                     <label for="loginEmail">Email</label>
@@ -61,7 +31,9 @@
                 </div>
                 <div id="loginError" class="auth-error"></div>
                 <button type="submit" class="auth-btn">Log In</button>
-                <p class="auth-switch">Don't have an account? <a href="#" class="auth-switch-link" data-view="signup">Sign Up</a></p>
+                <div class="security-notice">
+                    <p><strong>Security Notice:</strong> This is a personal journal app. Data is stored locally in your browser. For production use, consider a secure backend with proper encryption.</p>
+                </div>
             </form>
         </div>
     </div>
@@ -306,6 +278,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=1.4"></script>
+    <script src="script.js?v=1.5"></script>
 </body>
 </html> 

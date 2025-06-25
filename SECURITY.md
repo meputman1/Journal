@@ -1,93 +1,141 @@
-# Security Documentation - Journal App
+# Security Guide for Personal Journal App
 
 ## Overview
-This is a demo journal application that stores data locally in the user's browser. While we've implemented several security measures, this app is designed for demonstration purposes and should not be used for storing sensitive information in production environments.
+This is a **single-user personal journal application** designed for private use. The app has been configured with security measures appropriate for personal use while maintaining functionality.
 
 ## Security Features Implemented
 
-### 1. Password Security
-- **Password Hashing**: Passwords are hashed using SHA-256 with a salt before storage
-- **Strong Password Requirements**: Minimum 8 characters with uppercase, lowercase, and number
-- **Password Migration**: Existing plain-text passwords are automatically migrated to hashed versions
+### 1. **Single-User Access**
+- ✅ Sign-up form removed from UI
+- ✅ Only one user account allowed (first-time setup creates initial user)
+- ✅ No public registration endpoint
+- ✅ Login-only interface
 
-### 2. Session Management
-- **Session-based Authentication**: Uses sessionStorage for session management instead of persistent localStorage
-- **Session Expiration**: Sessions expire after 24 hours
-- **Automatic Session Validation**: Sessions are validated on app startup
+### 2. **Authentication & Session Management**
+- ✅ JWT-based authentication with configurable expiry (24 hours)
+- ✅ Password hashing using SHA-256 with salt
+- ✅ Rate limiting on login attempts (5 attempts per 15 minutes)
+- ✅ Session management with automatic cleanup
+- ✅ Secure logout functionality
 
-### 3. Input Sanitization
-- **XSS Prevention**: User inputs are sanitized to prevent script injection
-- **HTML Escaping**: Special characters are escaped to prevent HTML injection
+### 3. **Content Security Policy (CSP)**
+- ✅ Strict CSP headers configured
+- ✅ Inline scripts blocked (event handlers moved to external JS)
+- ✅ External resources restricted to trusted sources
+- ✅ XSS protection enabled
 
-### 4. Rate Limiting
-- **Login Attempt Limiting**: Maximum 5 failed login attempts per email
-- **Account Lockout**: 15-minute lockout period after exceeding attempt limit
-- **Automatic Reset**: Lockout resets after the time period
+### 4. **CORS Configuration**
+- ✅ Restricted to specific domains only
+- ✅ Production: `https://journal-6q0v.onrender.com`
+- ✅ Development: `http://localhost:3000`
+- ✅ Credentials handling configured
 
-### 5. Data Isolation
-- **User-specific Storage**: Each user's data is stored with a unique key
-- **Session Clearing**: All sensitive data is cleared on logout
+### 5. **Data Storage**
+- ✅ Client-side: localStorage with user-specific keys
+- ✅ Server-side: SQLite database with proper indexing
+- ✅ Data isolation between users (if multiple users exist)
+
+### 6. **Input Validation & Sanitization**
+- ✅ Email format validation
+- ✅ Password strength requirements (8+ chars, uppercase, lowercase, number)
+- ✅ Input sanitization to prevent XSS
+- ✅ SQL injection protection via parameterized queries
+
+## Security Recommendations
+
+### For Production Deployment
+
+1. **Set Strong JWT Secret**
+   ```bash
+   # Generate a secure JWT secret
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+   Set this in your environment variables.
+
+2. **Use HTTPS Only**
+   - Ensure your hosting provider uses HTTPS
+   - Never access the app over HTTP in production
+
+3. **Regular Backups**
+   - Backup your SQLite database file (`journal.db`)
+   - Backup localStorage data if needed
+
+4. **Keep Dependencies Updated**
+   ```bash
+   npm audit
+   npm update
+   ```
+
+5. **Monitor Logs**
+   - Check server logs for suspicious activity
+   - Monitor failed login attempts
+
+### Environment Variables to Set
+
+```env
+NODE_ENV=production
+JWT_SECRET=your-generated-secret-here
+ALLOWED_ORIGINS=https://yourdomain.com
+```
 
 ## Security Limitations
 
-### 1. Client-Side Storage
-- **localStorage Vulnerability**: All data is stored in the browser's localStorage
-- **No Server-side Validation**: All authentication happens client-side
-- **Browser Access**: Anyone with access to the browser can view stored data
+### What This App Does NOT Protect Against:
+- **Physical Access**: If someone has access to your device, they can access your data
+- **Browser Vulnerabilities**: Client-side storage is vulnerable to browser exploits
+- **Network Attacks**: While HTTPS helps, sophisticated attacks may still be possible
+- **Server Compromise**: If the server is compromised, data could be exposed
 
-### 2. No Encryption
-- **Plain Text Storage**: Journal entries are stored in plain text
-- **No End-to-End Encryption**: Data is not encrypted at rest
+### For Maximum Security:
+- Use a dedicated device for journaling
+- Consider using a password manager for the login
+- Regularly clear browser cache and localStorage
+- Use a VPN when accessing from public networks
 
-### 3. No Network Security
-- **No HTTPS**: No transport layer security
-- **No API Security**: No backend API with proper authentication
+## Data Privacy
 
-## Recommendations for Production Use
+### What Data is Stored:
+- **Client-side (localStorage)**:
+  - User credentials (hashed)
+  - Journal entries
+  - User preferences
+  - Session data
 
-### 1. Backend Implementation
-- Implement a secure backend server with proper authentication
-- Use HTTPS for all communications
-- Implement proper session management with JWT tokens
-- Add rate limiting on the server side
+- **Server-side (SQLite)**:
+  - User accounts (hashed passwords)
+  - Journal entries (if using server storage)
 
-### 2. Data Encryption
-- Encrypt sensitive data at rest
-- Implement end-to-end encryption for journal entries
-- Use secure key management
+### Data Retention:
+- Data persists until manually deleted
+- No automatic data deletion
+- Session data expires after 24 hours
 
-### 3. Additional Security Measures
-- Implement two-factor authentication (2FA)
-- Add audit logging for security events
-- Implement data backup and recovery procedures
-- Add account recovery mechanisms
+## Incident Response
 
-### 4. Privacy Compliance
-- Implement GDPR compliance features
-- Add data export and deletion capabilities
-- Implement proper data retention policies
+If you suspect a security breach:
 
-## Current Security Measures
+1. **Immediate Actions**:
+   - Change your password immediately
+   - Clear all browser data for the site
+   - Check for unauthorized entries
 
-### Password Requirements
-- Minimum 8 characters
-- At least one uppercase letter
-- At least one lowercase letter
-- At least one number
-- Special characters allowed: @$!%*?&
+2. **Investigation**:
+   - Review server logs
+   - Check for unusual login patterns
+   - Verify data integrity
 
-### Session Security
-- Sessions expire after 24 hours
-- Sessions are stored in sessionStorage (cleared when browser closes)
-- Automatic session validation on app startup
+3. **Recovery**:
+   - Restore from backup if needed
+   - Update all passwords
+   - Consider additional security measures
 
-### Data Protection
-- User-specific storage keys prevent data mixing
-- Input sanitization prevents XSS attacks
-- Rate limiting prevents brute force attacks
+## Support
 
-## Security Notice
-This application is designed for educational and demonstration purposes. It should not be used to store sensitive or confidential information. For production use, implement a proper backend with industry-standard security measures.
+For security concerns or questions:
+- Review this document
+- Check the main README.md
+- Consider the security implications of any modifications
 
-## Contact
-For security concerns or questions about this implementation, please review the code and implement appropriate security measures for your specific use case. 
+---
+
+**Remember**: This is a personal journal app. The security measures are appropriate for personal use but may not be sufficient for sensitive or confidential information. Consider your specific security needs and adjust accordingly. 

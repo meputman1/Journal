@@ -7,14 +7,9 @@ let isAuthenticated = false;
 // DOM elements for authentication
 const authOverlay = document.getElementById('authOverlay');
 const mainApp = document.getElementById('mainApp');
-const signUpForm = document.getElementById('signUpForm');
 const loginForm = document.getElementById('loginForm');
-const signUpEmail = document.getElementById('signUpEmail');
-const signUpPassword = document.getElementById('signUpPassword');
-const confirmPassword = document.getElementById('confirmPassword');
 const loginEmail = document.getElementById('loginEmail');
 const loginPassword = document.getElementById('loginPassword');
-const signUpError = document.getElementById('signUpError');
 const loginError = document.getElementById('loginError');
 const userEmail = document.getElementById('userEmail');
 const logoutBtn = document.getElementById('logoutBtn');
@@ -280,19 +275,8 @@ function checkAuthState() {
  * Setup authentication event listeners
  */
 function setupAuthEventListeners() {
-    signUpForm.addEventListener('submit', handleSignUp);
     loginForm.addEventListener('submit', handleLogin);
     logoutBtn.addEventListener('click', logout);
-    
-    // Handle auth view switching
-    const authSwitchLinks = document.querySelectorAll('.auth-switch-link');
-    authSwitchLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const view = link.getAttribute('data-view');
-            switchAuthView(view);
-        });
-    });
     
     // Handle password toggle buttons
     const passwordToggles = document.querySelectorAll('.password-toggle');
@@ -369,22 +353,7 @@ function togglePassword(inputId) {
         toggle.textContent = '🙈';
     } else {
         input.type = 'password';
-        toggle.textContent = '👁️';
-    }
-}
-
-/**
- * Switch between sign up and login views
- */
-function switchAuthView(view) {
-    if (view === 'login') {
-        signUpForm.style.display = 'none';
-        loginForm.style.display = 'block';
-        clearAuthErrors();
-    } else {
-        loginForm.style.display = 'none';
-        signUpForm.style.display = 'block';
-        clearAuthErrors();
+        toggle.textContent = '��️';
     }
 }
 
@@ -392,7 +361,6 @@ function switchAuthView(view) {
  * Clear authentication error messages
  */
 function clearAuthErrors() {
-    signUpError.textContent = '';
     loginError.textContent = '';
 }
 
@@ -405,66 +373,48 @@ function isValidEmail(email) {
 }
 
 /**
- * Handle sign up form submission
+ * Check if any users exist in localStorage
  */
-async function handleSignUp(event) {
-    event.preventDefault();
-    clearAuthErrors();
-    
-    const email = sanitizeInput(signUpEmail.value);
-    const password = signUpPassword.value;
-    const confirm = confirmPassword.value;
-    
-    // Validation
-    if (!isValidEmail(email)) {
-        signUpError.textContent = 'Please enter a valid email address.';
-        return;
+function checkIfUsersExist() {
+    try {
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        return users.length > 0;
+    } catch (error) {
+        console.error('Error checking users:', error);
+        return false;
     }
-    
-    if (!isValidPassword(password)) {
-        signUpError.textContent = 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number.';
-        return;
-    }
-    
-    if (password !== confirm) {
-        signUpError.textContent = 'Passwords do not match.';
-        return;
-    }
-    
+}
+
+/**
+ * Handle first-time setup (create initial user)
+ */
+async function handleFirstTimeSetup(email, password) {
     try {
         // Hash the password
         const hashedPassword = await hashPassword(password);
-        
-        // Check if user already exists
-        const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
-        if (existingUsers.find(user => user.email === email)) {
-            signUpError.textContent = 'An account with this email already exists.';
-            return;
-        }
         
         // Create new user
         const newUser = {
             id: Date.now(),
             email: email,
-            password: hashedPassword, // Store hashed password
+            password: hashedPassword,
             createdAt: new Date().toISOString()
         };
         
         // Save user
-        existingUsers.push(newUser);
-        localStorage.setItem('users', JSON.stringify(existingUsers));
+        localStorage.setItem('users', JSON.stringify([newUser]));
         
         // Create session and log in the new user
         const session = createSession(newUser);
         currentUser = { id: newUser.id, email: newUser.email };
-        console.log('New user created and logged in:', currentUser);
+        console.log('Initial user created and logged in:', currentUser);
         isAuthenticated = true;
         
         showMainApp();
-        showSuccessMessage('Account created successfully!');
+        showSuccessMessage('Account created successfully! Welcome to your personal journal.');
     } catch (error) {
-        console.error('Error during sign up:', error);
-        signUpError.textContent = 'An error occurred during sign up. Please try again.';
+        console.error('Error during first-time setup:', error);
+        loginError.textContent = 'An error occurred during setup. Please try again.';
     }
 }
 
@@ -496,7 +446,20 @@ async function handleLogin(event) {
     }
     
     try {
-        // Hash the password for comparison
+        // Check if any users exist
+        const usersExist = checkIfUsersExist();
+        
+        if (!usersExist) {
+            // First-time setup - create initial user
+            if (!isValidPassword(password)) {
+                loginError.textContent = 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number.';
+                return;
+            }
+            await handleFirstTimeSetup(email, password);
+            return;
+        }
+        
+        // Normal login flow
         const hashedPassword = await hashPassword(password);
         
         // Check credentials
@@ -529,7 +492,6 @@ async function handleLogin(event) {
 // Clear sensitive data function
 function clearSensitiveData() {
     // Clear all form inputs
-    if (signUpForm) signUpForm.reset();
     if (loginForm) loginForm.reset();
     
     // Clear any sensitive variables
