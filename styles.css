@@ -390,4 +390,106 @@ main {
 .mood-btn[title]:hover::before, .filter-btn[title]:hover::before {
     opacity: 1;
     visibility: visible;
+}
+
+/* Calendar grid layout */
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 4px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+    padding: 8px;
+    min-height: 260px;
+}
+
+.calendar-day {
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    background: #f7f9fc;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    border: 1px solid #e2e8f0;
+    position: relative;
+}
+
+.calendar-day:hover {
+    background: #e0e7ff;
+    color: #4a5568;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.10);
+}
+
+.calendar-day.today {
+    border: 2px solid #667eea;
+    background: #e9eafc;
+    font-weight: bold;
+}
+
+.calendar-day.selected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.calendar-day.has-entries::after {
+    content: '';
+    display: block;
+    width: 7px;
+    height: 7px;
+    background: #667eea;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.calendar-day.other-month {
+    background: transparent;
+    border: none;
+    cursor: default;
+}
+
+@media (max-width: 600px) {
+    .calendar-days {
+        min-height: 180px;
+        padding: 2px;
+    }
+    .calendar-day {
+        min-height: 28px;
+        font-size: 0.85rem;
+    }
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-weight: 600;
+    background: #f3f6fa;
+    border-radius: 8px 8px 0 0;
+    padding: 6px 0;
+    color: #667eea;
+    font-size: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 2px;
+}
+
+.calendar-weekdays > div {
+    padding: 4px 0;
+    letter-spacing: 0.5px;
+}
+
+@media (max-width: 600px) {
+    .calendar-weekdays {
+        font-size: 0.85rem;
+        padding: 2px 0;
+    }
 } 

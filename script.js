@@ -167,53 +167,43 @@ function renderCalendar() {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
+    const startingDayOfWeek = firstDay.getDay(); // 0=Sun, 1=Mon, ...
     
     calendarDaysContainer.innerHTML = '';
-    
+    let cells = 0;
+    // Insert blank divs before the 1st
     for (let i = 0; i < startingDayOfWeek; i++) {
         const emptyDay = document.createElement('div');
         emptyDay.className = 'calendar-day other-month';
         calendarDaysContainer.appendChild(emptyDay);
+        cells++;
     }
-    
+    // Render days 1–N
     for (let day = 1; day <= daysInMonth; day++) {
         const dayElement = document.createElement('div');
         dayElement.className = 'calendar-day';
         dayElement.textContent = day;
-        
         const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        
         if (journalEntries.some(entry => entry.dateString === dateString)) {
             dayElement.classList.add('has-entries');
         }
-        
         const today = new Date();
         if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
             dayElement.classList.add('today');
         }
-        
         if (selectedCalendarDate === dateString) {
             dayElement.classList.add('selected');
         }
-        
         dayElement.addEventListener('click', () => selectCalendarDate(dateString));
         calendarDaysContainer.appendChild(dayElement);
+        cells++;
     }
-
-    const totalCells = 42;
-    const cellsRendered = calendarDaysContainer.children.length;
-    if (cellsRendered > totalCells) {
-        // This case should ideally not happen with correct logic
-        console.error("Error: More than 42 cells rendered in the calendar.");
-        return;
-    }
-    const remainingCells = totalCells - cellsRendered;
-
-    for (let i = 0; i < remainingCells; i++) {
+    // Fill the rest of the 35 cells with blank divs
+    while (cells < 35) {
         const emptyDay = document.createElement('div');
         emptyDay.className = 'calendar-day other-month';
         calendarDaysContainer.appendChild(emptyDay);
+        cells++;
     }
 }
 
