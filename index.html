@@ -11,6 +11,7 @@
         <header>
             <h1>📖 My Journal</h1>
             <p>Write your thoughts and feelings</p>
+            <button id="privacyModeToggle" class="privacy-toggle" aria-pressed="false">🔒 Privacy Mode</button>
         </header>
 
         <main>
@@ -169,6 +170,9 @@
             <!-- Journal Entries Display (Bottom) -->
             <section class="entries-section">
                 <h2>📝 Your Entries</h2>
+                <div id="privacyLockedMessage" class="privacy-locked-message" style="display:none;">
+                    <p>🔐 Entries hidden. Disable privacy mode to view.</p>
+                </div>
                 <div id="entriesContainer" class="entries-container">
                     <!-- Entries will be dynamically added here -->
                 </div>

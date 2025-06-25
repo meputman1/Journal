@@ -8,6 +8,10 @@ let selectedTags = [];
 let currentDate = new Date();
 let selectedCalendarDate = null;
 let calendarDayElements = [];
+const privacyModeToggle = document.getElementById('privacyModeToggle');
+const privacyLockedMessage = document.getElementById('privacyLockedMessage');
+let privacyMode = sessionStorage.getItem('privacyMode') === 'true';
+let privacyPin = sessionStorage.getItem('privacyPin') || null;
 
 // DOM elements
 const journalForm = document.getElementById('journalForm');
@@ -42,6 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
     displayEntries();
     populateMonthYearSelectors();
     syncMonthYearSelectors();
+    updatePrivacyModeUI();
 });
 
 /**
@@ -78,6 +83,12 @@ function setupEventListeners() {
     
     prevMonthBtn.addEventListener('click', () => navigateMonth(-1));
     nextMonthBtn.addEventListener('click', () => navigateMonth(1));
+
+    // Privacy Mode setup
+    if (privacyModeToggle) {
+        privacyModeToggle.setAttribute('aria-pressed', privacyMode ? 'true' : 'false');
+        privacyModeToggle.addEventListener('click', togglePrivacyMode);
+    }
 }
 
 /**
@@ -416,6 +427,7 @@ function renderCalendar() {
         if (focusIdx !== -1) {
             setTimeout(() => focusCalendarDay(focusIdx), 10);
         }
+        updatePrivacyModeUI();
     }, 300);
 }
 
@@ -460,6 +472,7 @@ function displayEntries(entriesToShow) {
             entriesContainer.appendChild(entryCard);
         });
     }
+    updatePrivacyModeUI();
 }
 
 /**
@@ -704,5 +717,66 @@ function renderCalendar() {
         emptyDay.className = 'calendar-day other-month';
         calendarDaysContainer.appendChild(emptyDay);
         cells++;
+    }
+    updatePrivacyModeUI();
+}
+
+// Privacy Mode logic
+function togglePrivacyMode() {
+    if (!privacyMode) {
+        // Optionally prompt for PIN on enable
+        const setPin = confirm('Would you like to set a 4-digit PIN for Privacy Mode?');
+        if (setPin) {
+            let pin = prompt('Enter a 4-digit PIN:', '');
+            if (pin && /^\d{4}$/.test(pin)) {
+                privacyPin = pin;
+                sessionStorage.setItem('privacyPin', pin);
+            } else if (pin !== null) {
+                alert('PIN must be exactly 4 digits. Privacy Mode will be enabled without a PIN.');
+                privacyPin = null;
+                sessionStorage.removeItem('privacyPin');
+            }
+        } else {
+            privacyPin = null;
+            sessionStorage.removeItem('privacyPin');
+        }
+    } else if (privacyPin) {
+        // Require PIN to disable
+        let entered = prompt('Enter your 4-digit PIN to disable Privacy Mode:','');
+        if (entered !== privacyPin) {
+            alert('Incorrect PIN. Privacy Mode remains enabled.');
+            return;
+        }
+    }
+    privacyMode = !privacyMode;
+    sessionStorage.setItem('privacyMode', privacyMode);
+    privacyModeToggle.setAttribute('aria-pressed', privacyMode ? 'true' : 'false');
+    updatePrivacyModeUI();
+}
+
+function updatePrivacyModeUI() {
+    if (privacyMode) {
+        // Hide entries, show locked message, disable calendar click
+        if (entriesContainer) entriesContainer.style.display = 'none';
+        if (noEntries) noEntries.style.display = 'none';
+        if (privacyLockedMessage) privacyLockedMessage.style.display = 'block';
+        // Disable calendar click
+        if (calendarDaysContainer) {
+            Array.from(calendarDaysContainer.children).forEach(day => {
+                day.style.pointerEvents = 'none';
+                day.style.opacity = 0.5;
+            });
+        }
+    } else {
+        if (entriesContainer) entriesContainer.style.display = '';
+        if (noEntries) noEntries.style.display = '';
+        if (privacyLockedMessage) privacyLockedMessage.style.display = 'none';
+        // Enable calendar click
+        if (calendarDaysContainer) {
+            Array.from(calendarDaysContainer.children).forEach(day => {
+                day.style.pointerEvents = '';
+                day.style.opacity = '';
+            });
+        }
     }
 } 
