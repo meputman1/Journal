@@ -298,6 +298,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     mainSections.forEach(section => {
         section.classList.add('fade-in-section');
     });
+
+    // Ensure Save Entry button submits the form
+    const saveEntryBtn = document.getElementById('saveEntryBtn');
+    if (saveEntryBtn && journalForm) {
+        saveEntryBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            journalForm.requestSubmit();
+        });
+    }
 });
 
 /**
@@ -870,34 +879,30 @@ function handleTagFilterSelection(event) {
  */
 function handleFormSubmit(event) {
     event.preventDefault();
-    
     const text = sanitizeInput(entryText.value);
     const mood = selectedMood;
     const tags = selectedTags;
-    
     if (!text.trim()) {
         showSuccessMessage('Please enter some text for your journal entry.');
         return;
     }
-    
     if (!mood) {
         showSuccessMessage('Please select a mood for your entry.');
         return;
     }
-    
+    const now = new Date();
     const entry = {
         id: Date.now(),
         text: text,
         mood: mood,
         tags: tags,
-        date: new Date().toISOString(),
-        dateString: new Date().toISOString().split('T')[0],
+        date: now.toISOString(),
+        dateString: now.toISOString().split('T')[0],
+        timeString: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         usedPrompt: usedPromptForEntry || null
     };
-    
     journalEntries.unshift(entry);
     saveEntries();
-    
     // Reset form
     journalForm.reset();
     selectedMood = '';
@@ -905,23 +910,16 @@ function handleFormSubmit(event) {
     selectedMoodInput.value = '';
     selectedTagsInput.value = '';
     selectedTagsContainer.innerHTML = '';
-    
-    // Reset mood and tag button states
     moodButtons.forEach(btn => btn.classList.remove('selected'));
     tagButtons.forEach(btn => btn.classList.remove('selected'));
-    
-    // Reset prompt selection
     usedPromptForEntry = null;
     if (usePromptBtn) {
         usePromptBtn.classList.remove('selected');
         usePromptBtn.textContent = 'Use this prompt';
     }
-    
-    // Update display
     displayEntries();
     renderCalendar();
     updateCharts();
-    
     showSuccessMessage('Journal entry saved successfully!');
 }
 
@@ -1190,9 +1188,11 @@ function createEntryCard(entry) {
     if (entry.usedPrompt) {
         promptHtml = `<div class="entry-prompt" style="margin-top: 8px; background: #f7f9fc; border-left: 3px solid #b794f4; padding: 6px 10px; border-radius: 6px; color: #5a189a; font-size: 0.97rem; display: flex; align-items: center; gap: 6px;"><span style="font-size: 1.1rem;">🧠</span><span>${entry.usedPrompt}</span></div>`;
     }
+    // Show date and time
+    const dateTime = `${formatDate(entry.date)}${entry.timeString ? ' • ' + entry.timeString : ''}`;
     card.innerHTML = `
         <div class="entry-header">
-            <span class="entry-date">${formatDate(entry.date)}</span>
+            <span class="entry-date">${dateTime}</span>
             <span class="entry-mood" title="${moodInfo.name}">${moodInfo.emoji}</span>
         </div>
         <div class="entry-text">${entry.text.replace(/\n/g, '<br>')}</div>
@@ -1487,8 +1487,8 @@ function createTagFrequencyChart() {
             datasets: [{
                 data: data.values,
                 backgroundColor: data.colors,
-                borderWidth: 2,
-                borderColor: '#ffffff'
+                borderColor: 'white',
+                borderWidth: 2
             }]
         },
         options: {
@@ -1496,18 +1496,39 @@ function createTagFrequencyChart() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.label || '';
-                            const value = context.parsed;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((value / total) * 100).toFixed(1);
-                            return `${label}: ${value} (${percentage}%)`;
+                    position: 'bottom',
+                    labels: {
+                        color: '#F0F0F0',
+                        font: { weight: 'bold', size: 15 },
+                        padding: 15,
+                        usePointStyle: true,
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            if (data.labels.length && data.datasets.length) {
+                                return data.labels.map((label, i) => {
+                                    const value = data.datasets[0].data[i];
+                                    const trend = comparisonEnabled && data.trends ? data.trends[i] : '';
+                                    return {
+                                        text: `${label}: ${value}${trend}`,
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        strokeStyle: data.datasets[0].backgroundColor[i],
+                                        lineWidth: 0,
+                                        pointStyle: 'circle',
+                                        hidden: false,
+                                        index: i
+                                    };
+                                });
+                            }
+                            return [];
                         }
                     }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(26,27,47,0.95)',
+                    titleColor: '#F0F0F0',
+                    bodyColor: '#F0F0F0',
+                    borderColor: '#A59FF1',
+                    borderWidth: 1
                 }
             }
         }
@@ -1965,7 +1986,8 @@ function createTagFrequencyChart() {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        color: chartColors.text,
+                        color: '#F0F0F0',
+                        font: { weight: 'bold', size: 15 },
                         padding: 15,
                         usePointStyle: true,
                         generateLabels: function(chart) {
@@ -1990,23 +2012,11 @@ function createTagFrequencyChart() {
                     }
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    titleColor: 'white',
-                    bodyColor: 'white',
-                    borderColor: chartColors.primary,
-                    borderWidth: 1,
-                    callbacks: {
-                        afterBody: function(context) {
-                            if (comparisonEnabled && data.trends) {
-                                const index = context[0].dataIndex;
-                                const trend = data.trends[index];
-                                if (trend) {
-                                    return [`${trend}`];
-                                }
-                            }
-                            return [];
-                        }
-                    }
+                    backgroundColor: 'rgba(26,27,47,0.95)',
+                    titleColor: '#F0F0F0',
+                    bodyColor: '#F0F0F0',
+                    borderColor: '#A59FF1',
+                    borderWidth: 1
                 }
             }
         }
