@@ -863,7 +863,8 @@ function handleFormSubmit(event) {
         mood: mood,
         tags: tags,
         date: new Date().toISOString(),
-        dateString: new Date().toISOString().split('T')[0]
+        dateString: new Date().toISOString().split('T')[0],
+        usedPrompt: usedPromptForEntry || null
     };
     
     journalEntries.unshift(entry);
@@ -880,6 +881,13 @@ function handleFormSubmit(event) {
     // Reset mood and tag button states
     moodButtons.forEach(btn => btn.classList.remove('selected'));
     tagButtons.forEach(btn => btn.classList.remove('selected'));
+    
+    // Reset prompt selection
+    usedPromptForEntry = null;
+    if (usePromptBtn) {
+        usePromptBtn.classList.remove('selected');
+        usePromptBtn.textContent = 'Use this prompt';
+    }
     
     // Update display
     displayEntries();
@@ -1142,8 +1150,6 @@ function createEntryCard(entry) {
     const card = document.createElement('div');
     card.className = 'entry-card';
     const moodInfo = getMoodInfo(entry.mood);
-    
-    // Create tags display
     let tagsHtml = '';
     if (entry.tags && entry.tags.length > 0) {
         tagsHtml = '<div class="entry-tags">';
@@ -1152,7 +1158,10 @@ function createEntryCard(entry) {
         });
         tagsHtml += '</div>';
     }
-    
+    let promptHtml = '';
+    if (entry.usedPrompt) {
+        promptHtml = `<div class="entry-prompt" style="margin-top: 8px; background: #f7f9fc; border-left: 3px solid #b794f4; padding: 6px 10px; border-radius: 6px; color: #5a189a; font-size: 0.97rem; display: flex; align-items: center; gap: 6px;"><span style="font-size: 1.1rem;">🧠</span><span>${entry.usedPrompt}</span></div>`;
+    }
     card.innerHTML = `
         <div class="entry-header">
             <span class="entry-date">${formatDate(entry.date)}</span>
@@ -1160,6 +1169,7 @@ function createEntryCard(entry) {
         </div>
         <div class="entry-text">${entry.text.replace(/\n/g, '<br>')}</div>
         ${tagsHtml}
+        ${promptHtml}
     `;
     return card;
 }
@@ -2712,3 +2722,67 @@ handleLogin = async function(event) {
     await originalHandleLogin.call(this, event);
 };
 // ... existing code ... 
+
+// Psychological insight prompts for 'Prompt Me' feature
+const prompts = [
+    "What story am I telling myself that might not be true?",
+    "What need is hiding behind this feeling?",
+    "What patterns am I repeating?",
+    "What would I say to a friend going through this?",
+    "What's one feeling I've ignored today?",
+    "What am I grateful for right now?",
+    "What is something I can let go of?",
+    "What is one small step I can take today?",
+    "How would I describe this moment in one word?",
+    "What is something I'm proud of this week?"
+];
+let lastPromptIndex = -1;
+const promptMeBtn = document.getElementById('promptMeBtn');
+const promptBox = document.getElementById('promptBox');
+const promptText = document.getElementById('promptText');
+
+// Optional: Track prompt usage
+const promptUsage = Array(prompts.length).fill(0);
+
+let usedPromptForEntry = null;
+const usePromptBtn = document.getElementById('usePromptBtn');
+
+function showRandomPrompt() {
+    if (!promptBox || !promptText) return;
+    let idx;
+    do {
+        idx = Math.floor(Math.random() * prompts.length);
+    } while (prompts.length > 1 && idx === lastPromptIndex);
+    lastPromptIndex = idx;
+    promptText.textContent = prompts[idx];
+    promptBox.style.display = 'flex';
+    promptUsage[idx]++;
+    // Show the 'Use this prompt' button
+    if (usePromptBtn) {
+        usePromptBtn.style.display = 'inline-block';
+        usePromptBtn.classList.remove('selected');
+        usePromptBtn.textContent = 'Use this prompt';
+    }
+    usedPromptForEntry = null;
+}
+
+if (promptMeBtn) {
+    promptMeBtn.addEventListener('click', showRandomPrompt);
+}
+
+if (usePromptBtn) {
+    usePromptBtn.addEventListener('click', function() {
+        if (lastPromptIndex >= 0) {
+            if (usedPromptForEntry === prompts[lastPromptIndex]) {
+                // Unselect if already selected
+                usedPromptForEntry = null;
+                usePromptBtn.classList.remove('selected');
+                usePromptBtn.textContent = 'Use this prompt';
+            } else {
+                usedPromptForEntry = prompts[lastPromptIndex];
+                usePromptBtn.classList.add('selected');
+                usePromptBtn.textContent = 'Prompt selected!';
+            }
+        }
+    });
+}
