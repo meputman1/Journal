@@ -190,37 +190,39 @@ const yearSelect = document.getElementById('yearSelect');
 let moodTrendsChart = null;
 let tagFrequencyChart = null;
 
-// Chart colors matching the app theme
+// Chart colors matching the cozy dusk/dawn theme
 const chartColors = {
-    primary: '#667eea',
-    secondary: '#764ba2',
-    accent: '#48bb78',
-    background: '#f7f9fc',
-    border: '#e2e8f0',
-    text: '#4a5568'
+    primary: '#A59FF1', // lavender
+    secondary: '#D6A3A3', // rose
+    accent: '#FFDEB4', // warm light
+    background: '#1A1B2F', // deep twilight navy
+    border: '#A59FF1',
+    text: '#EDEDED',
+    secondaryText: '#B0B0C0'
 };
 
-// Mood colors for the chart
+// Mood colors for the chart (dusk/dawn inspired)
 const moodColors = {
-    happy: '#48bb78',
-    sad: '#4299e1',
-    excited: '#ed8936',
-    anxious: '#ed64a6',
-    grateful: '#9f7aea',
-    numb: '#a0aec0',
-    angry: '#f56565',
-    motivated: '#38b2ac',
-    loved: '#f687b3',
-    overwhelmed: '#ed8936',
-    lonely: '#4299e1',
-    bored: '#a0aec0',
-    sick: '#ed8936',
-    disappointed: '#a0aec0',
-    frustrated: '#ed8936',
-    content: '#48bb78',
-    focused: '#4299e1',
-    stressed: '#ed64a6',
-    creative: '#9f7aea'
+    happy: '#FFDEB4',
+    sad: '#A59FF1',
+    excited: '#D6A3A3',
+    anxious: '#A59FF1',
+    grateful: '#FFDEB4',
+    numb: '#B0B0C0',
+    angry: '#D6A3A3',
+    motivated: '#A59FF1',
+    loved: '#FFDEB4',
+    overwhelmed: '#D6A3A3',
+    lonely: '#B0B0C0',
+    bored: '#B0B0C0',
+    sick: '#D6A3A3',
+    disappointed: '#B0B0C0',
+    frustrated: '#D6A3A3',
+    content: '#FFDEB4',
+    focused: '#A59FF1',
+    stressed: '#A59FF1',
+    creative: '#A59FF1',
+    unknown: '#B0B0C0'
 };
 
 // Trends state
@@ -270,6 +272,32 @@ document.addEventListener('DOMContentLoaded', async function() {
     checkAuthState();
     setupAuthEventListeners();
     setupEventListeners();
+
+    // Auto-focus or scroll to journal entry input on app launch
+    const entryInput = document.getElementById('entryText');
+    if (entryInput) {
+        setTimeout(() => {
+            entryInput.focus();
+            entryInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 400);
+    }
+
+    // Save button pulse on click
+    const saveBtn = document.querySelector('.save-btn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+            saveBtn.classList.remove('pulse-active');
+            void saveBtn.offsetWidth; // force reflow
+            saveBtn.classList.add('pulse-active');
+            setTimeout(() => saveBtn.classList.remove('pulse-active'), 600);
+        });
+    }
+
+    // Animate section transitions (fade/slide)
+    const mainSections = document.querySelectorAll('.entry-form, .search-section, .trends-section, .entries-section, .calendar-container');
+    mainSections.forEach(section => {
+        section.classList.add('fade-in-section');
+    });
 });
 
 /**
