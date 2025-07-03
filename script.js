@@ -620,6 +620,98 @@ function setupEventListeners() {
 
     // Setup test user creation event listeners
     setupTestUserEventListeners();
+
+    // Voice-to-text (Speech Recognition) for journal entry
+    const voiceInputBtn = document.getElementById('voiceInputBtn');
+    const micIcon = document.getElementById('micIcon');
+    const voiceStatus = document.getElementById('voiceStatus');
+    const listeningIndicator = document.getElementById('listeningIndicator');
+
+    let recognition = null;
+    let isListening = false;
+
+    function isSpeechRecognitionSupported() {
+        return (
+            'SpeechRecognition' in window ||
+            'webkitSpeechRecognition' in window
+        );
+    }
+
+    function getSpeechRecognition() {
+        return window.SpeechRecognition || window.webkitSpeechRecognition;
+    }
+
+    function startVoiceInput() {
+        if (!isSpeechRecognitionSupported()) {
+            showVoiceError('Speech recognition is not supported on this device/browser.');
+            return;
+        }
+        if (isListening) return;
+        isListening = true;
+        voiceInputBtn.classList.add('listening');
+        voiceStatus.style.display = 'block';
+        micIcon.textContent = '🎤';
+        listeningIndicator.textContent = 'Listening...';
+
+        if (!recognition) {
+            const SpeechRecognition = getSpeechRecognition();
+            recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+        }
+
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            entryText.value += (entryText.value ? ' ' : '') + transcript;
+        };
+        recognition.onerror = function(event) {
+            showVoiceError('Speech recognition error: ' + event.error);
+        };
+        recognition.onend = function() {
+            stopVoiceInput();
+        };
+        recognition.start();
+    }
+
+    function stopVoiceInput() {
+        isListening = false;
+        voiceInputBtn.classList.remove('listening');
+        voiceStatus.style.display = 'none';
+        micIcon.textContent = '🎤';
+        if (recognition) {
+            recognition.onresult = null;
+            recognition.onerror = null;
+            recognition.onend = null;
+            try { recognition.stop(); } catch (e) {}
+        }
+    }
+
+    function showVoiceError(msg) {
+        voiceStatus.style.display = 'block';
+        listeningIndicator.textContent = msg;
+        setTimeout(() => {
+            voiceStatus.style.display = 'none';
+            listeningIndicator.textContent = 'Listening...';
+        }, 3000);
+    }
+
+    if (voiceInputBtn) {
+        if (isSpeechRecognitionSupported()) {
+            voiceInputBtn.disabled = false;
+            voiceInputBtn.title = 'Speak Entry';
+            voiceInputBtn.addEventListener('click', function() {
+                if (!isListening) {
+                    startVoiceInput();
+                } else {
+                    stopVoiceInput();
+                }
+            });
+        } else {
+            voiceInputBtn.disabled = true;
+            voiceInputBtn.title = 'Speech recognition not supported on this device/browser.';
+        }
+    }
 }
 
 /**

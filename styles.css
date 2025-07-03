@@ -1538,4 +1538,38 @@ main {
     margin-top: 0.25rem;
     display: block;
     font-style: italic;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    100% { opacity: 0.4; }
+}
+
+#voiceInputBtn {
+    outline: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    transition: background 0.2s;
+}
+#voiceInputBtn:active, #voiceInputBtn:focus {
+    background: #e2e8f0;
+    border-radius: 50%;
+}
+#micIcon {
+    font-size: 1.5rem;
+    transition: color 0.2s;
+}
+#voiceInputBtn.listening #micIcon {
+    color: #667eea;
+    animation: pulse 1s infinite alternate;
+}
+#voiceStatus {
+    color: #667eea;
+    font-weight: 500;
+    margin-top: 4px;
+    font-size: 1rem;
 } 
