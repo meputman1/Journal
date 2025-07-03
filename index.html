@@ -251,11 +251,20 @@
                     <form id="journalForm">
                         <div class="form-group">
                             <label for="entryText">What's on your mind?</label>
-                            <textarea 
-                                id="entryText" 
-                                placeholder="Write your journal entry here..."
-                                required
-                            ></textarea>
+                            <div class="journal-input-row" style="display: flex; align-items: center; gap: 8px;">
+                                <textarea 
+                                    id="entryText" 
+                                    placeholder="Write your journal entry here..."
+                                    required
+                                    style="flex: 1;"
+                                ></textarea>
+                                <button type="button" id="voiceInputBtn" title="Speak Entry" aria-label="Speak Entry" style="font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0 8px;">
+                                    <span id="micIcon">🎤</span>
+                                </button>
+                            </div>
+                            <div id="voiceStatus" style="display: none; color: #667eea; font-weight: 500; margin-top: 4px;">
+                                <span id="listeningIndicator" style="animation: pulse 1s infinite alternate;">Listening...</span>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -384,6 +393,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js?v=2.0"></script>
 </body>
 </html> 
